@@ -1,0 +1,26 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:c="http://java.sun.com/jsp/jstl/core">
+<h:head></h:head>
+<h:body>
+	<ui:composition template="templates/template.xhtml">
+		<ui:define name="content">
+			<div class="container">
+
+
+				<h2>#{sessionBean.client.deviceName}</h2>	
+				<h4>ID: #{sessionBean.client.id}</h4>
+				<h4>Size: #{sessionBean.client.deviceWidth} x #{sessionBean.client.deviceHeight}</h4>
+				<h:form>
+					<h:commandButton action="#{deviceBean.connect()}"
+						value="Connect" styleClass="btn btn-primary" />
+				</h:form>
+				
+			</div>
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>
