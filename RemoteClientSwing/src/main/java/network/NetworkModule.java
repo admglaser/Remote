@@ -11,7 +11,7 @@ public class NetworkModule {
 	@Singleton
 	@Provides
 	public ServerConnection provideServerConnection() {
-		return new WebsocketServerConnection();
+		return new WebsocketClientEndpointWithInject();
 	}
 
 }
