@@ -2,14 +2,37 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>hu.bme.aut.dipterv</groupId>
+
+	<parent>
+		<groupId>hu.bme.aut.dipterv</groupId>
+		<artifactId>remote</artifactId>
+		<version>1.0.0</version>
+		<relativePath>../</relativePath>
+	</parent>
+
 	<artifactId>remote-server</artifactId>
-	<version>1.0.0</version>
 	<packaging>war</packaging>
 
 	<build>
 		<sourceDirectory>src/main/java</sourceDirectory>
 		<plugins>
+
+			<plugin>
+				<artifactId>exec-maven-plugin</artifactId>
+				<groupId>org.codehaus.mojo</groupId>
+				<executions>
+					<execution>
+						<id>copy war</id>
+						<phase>install</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>${basedir}/copyWAR.bat</executable>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

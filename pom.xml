@@ -11,6 +11,7 @@
 		<module>RemoteBase</module>
 		<module>RemoteClientBase</module>
 		<module>RemoteClientSwing</module>
+		<module>RemoteClientAndroid</module>
 		<module>RemoteServer</module>
 	</modules>
 
