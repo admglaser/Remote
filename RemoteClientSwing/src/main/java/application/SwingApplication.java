@@ -15,7 +15,6 @@ import java.awt.TrayIcon.MessageType;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -25,8 +24,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
-import model.json.KeyEvent;
-import model.json.MouseClick;
+import model.message.KeyEvent;
+import model.message.MouseClick;
 import ui.access.AccessPanel;
 import ui.connection.ConnectionPanel;
 

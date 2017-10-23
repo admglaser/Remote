@@ -1,7 +1,7 @@
 package application;
 
-import model.json.KeyEvent;
-import model.json.MouseClick;
+import model.message.KeyEvent;
+import model.message.MouseClick;
 
 public interface Application {
 

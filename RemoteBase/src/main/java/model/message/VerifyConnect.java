@@ -1,6 +1,6 @@
-package model.json;
+package model.message;
 
-public class VerifyConnect implements Message {
+public class VerifyConnect {
 	
 	private boolean success;
 

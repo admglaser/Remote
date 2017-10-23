@@ -1,6 +1,6 @@
-package model.json;
+package model.message;
 
-public class Connect implements Message {
+public class Connect {
 	
 	private String id;
 

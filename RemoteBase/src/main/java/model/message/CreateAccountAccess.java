@@ -1,6 +1,6 @@
-package model.json;
+package model.message;
 
-public class CreateAccountAccess implements Message {
+public class CreateAccountAccess {
 
 	private String username;
 	private String password;

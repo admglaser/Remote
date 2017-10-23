@@ -1,6 +1,6 @@
-package model.json;
+package model.message;
 
-public class CreateAnonymousAccess implements Message {
+public class CreateAnonymousAccess {
 
 	private String numericId;
 	

@@ -1,6 +1,6 @@
-package model.json;
+package model.message;
 
-public class KeyEvent implements Message {
+public class KeyEvent {
 	
 	public static final int TYPE_KEYDOWN = 0;
 	public static final int TYPE_KEYUP = 1;
@@ -34,4 +34,25 @@ public class KeyEvent implements Message {
 		this.character = character;
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		KeyEvent other = (KeyEvent) obj;
+		if (character == null) {
+			if (other.character != null)
+				return false;
+		} else if (!character.equals(other.character))
+			return false;
+		if (code != other.code)
+			return false;
+		if (type != other.type)
+			return false;
+		return true;
+	}
+	
 }

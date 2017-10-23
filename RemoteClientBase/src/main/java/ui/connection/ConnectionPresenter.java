@@ -36,10 +36,6 @@ public class ConnectionPresenter extends Presenter<ConnectionScreen, ConnectionM
 			screen.updateReceivedMessages();
 		} 
 	}
-
-	public void showMessage(String message) {
-		screen.showMessage(message);
-	}
 	
 	public void messageSent() {
 		model.incSentMessages();
@@ -49,6 +45,10 @@ public class ConnectionPresenter extends Presenter<ConnectionScreen, ConnectionM
 	public void messageReceived() {
 		model.incReceivedMessages();
 		screen.updateReceivedMessages();
+	}
+	
+	public void showMessage(String message) {
+		screen.showMessage(message);
 	}
 	
 }

@@ -1,6 +1,6 @@
-package model.json;
+package model.message;
 
-public class VerifyCreateAccountAccess implements Message {
+public class VerifyCreateAccountAccess {
 	
 	private boolean success;
 

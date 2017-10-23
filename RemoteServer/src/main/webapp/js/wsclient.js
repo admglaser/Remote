@@ -19,27 +19,11 @@ $(document).ready(function() {
 		keyboardButton();
 	});
 	
-//	function onMouseDown(event) {
-//		if (mouseCaptureEnabled) {
-//			var pos = getMousePos(canvas, event);
-//			var button = event.button;
-//			sendMouseClick(pos.x, pos.y, button);
-//		}
-//	}
-	
 	$("#canvas").mousedown(function(e){
 		if (mouseCaptureEnabled) {
 			var pos = getMousePos(canvas, event);
 			var button = event.button;
 			sendMouseClick(0, pos.x, pos.y, button);
-		}
-	});
-	
-	$("#canvas").mouseup(function(e){
-		if (mouseCaptureEnabled) {
-			var pos = getMousePos(canvas, event);
-			var button = event.button;
-			sendMouseClick(1, pos.x, pos.y, button);
 		}
 	});
 	
@@ -210,7 +194,6 @@ function sendMouseClick(type, x, y, button) {
 	y = Math.round(y / d);
 	var json = {
 		"mouseClick" : {
-			"type" : type,
 			"x" : x,
 			"y" : y,
 			"button" : button

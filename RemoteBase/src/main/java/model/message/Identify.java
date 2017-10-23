@@ -1,6 +1,6 @@
-package model.json;
+package model.message;
 
-public class Identify implements Message {
+public class Identify {
 
 	private String type;
 	private String deviceName;
@@ -38,4 +38,5 @@ public class Identify implements Message {
 	public void setDeviceHeight(int deviceHeight) {
 		this.deviceHeight = deviceHeight;
 	}
+	
 }

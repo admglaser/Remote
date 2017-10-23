@@ -1,46 +1,31 @@
 package network;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.websocket.Session;
-
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import application.Application;
 import capture.Capturer;
 import model.ImagePiece;
+import model.MessageWrapper;
 import model.Rectangle;
-import model.json.CreateAccountAccess;
-import model.json.CreateAccountAccessWrapper;
-import model.json.CreateAnonymousAccess;
-import model.json.CreateAnonymousAccessWrapper;
-import model.json.Identify;
-import model.json.IdentifyWrapper;
-import model.json.Image;
-import model.json.ImageWrapper;
-import model.json.ImagesWrapper;
-import model.json.KeyEvent;
-import model.json.KeyEventWrapper;
-import model.json.MessageWrapper;
-import model.json.MouseClick;
-import model.json.MouseClickWrapper;
-import model.json.RemoveAccountAccess;
-import model.json.RemoveAccountAccessWrapper;
-import model.json.RemoveAnonymousAccess;
-import model.json.RemoveAnonymousAccessWrapper;
-import model.json.Start;
-import model.json.StartWrapper;
-import model.json.Stop;
-import model.json.StopWrapper;
-import model.json.VerifyCreateAccountAccess;
-import model.json.VerifyCreateAccountAccessWrapper;
-import model.json.VerifyCreateAnonymousAccess;
-import model.json.VerifyCreateAnonymousAccessWrapper;
+import model.message.CreateAccountAccess;
+import model.message.CreateAnonymousAccess;
+import model.message.Identify;
+import model.message.Image;
+import model.message.KeyEvent;
+import model.message.MouseClick;
+import model.message.RemoveAccountAccess;
+import model.message.RemoveAnonymousAccess;
+import model.message.Start;
+import model.message.Stop;
+import model.message.VerifyCreateAccountAccess;
+import model.message.VerifyCreateAnonymousAccess;
 import ui.access.AccessPresenter;
 import ui.connection.ConnectionPresenter;
 
 public class MessageHandler {
+
+	public static final String TYPE = "sender";
 
 	Application application;
 
@@ -50,7 +35,7 @@ public class MessageHandler {
 
 	ConnectionPresenter connectionPresenter;
 
-	private Session session;
+	protected Session session;
 
 	public MessageHandler(Session session) {
 		this.session = session;
@@ -58,76 +43,52 @@ public class MessageHandler {
 
 	public void handleMessage(String message) {
 		connectionPresenter.messageReceived();
+		
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.setSerializationInclusion(Include.NON_NULL);
+		
 		try {
-			ObjectMapper mapper = new ObjectMapper();
-
-			try {
-				VerifyCreateAnonymousAccessWrapper verifyCreateAnonymousAccessWrapper = mapper.readValue(message,
-						VerifyCreateAnonymousAccessWrapper.class);
-				parseVerifyCreateAnonymousAccess(verifyCreateAnonymousAccessWrapper.getVerifyCreateAnonymousAccess());
+			MessageWrapper wrapper = mapper.readValue(message, MessageWrapper.class);
+			
+			VerifyCreateAccountAccess verifyCreateAccountAccess = wrapper.getVerifyCreateAccountAccess();
+			if (verifyCreateAccountAccess != null) {
+				parseVerifyCreateAccountAccess(verifyCreateAccountAccess);
 				return;
-			} catch (Exception e) {
-			}
-
-			try {
-				VerifyCreateAccountAccessWrapper verifyCreateAccountAccessWrapper = mapper.readValue(message,
-						VerifyCreateAccountAccessWrapper.class);
-				parseVerifyCreateAccountAccess(verifyCreateAccountAccessWrapper.getVerifyCreateAccountAccess());
-				return;
-			} catch (Exception e) {
-			}
-
-			try {
-				StartWrapper startWrapper = mapper.readValue(message, StartWrapper.class);
-				parseStart(startWrapper.getStart());
-				return;
-			} catch (Exception e) {
-			}
-
-			try {
-				StopWrapper stopWrapper = mapper.readValue(message, StopWrapper.class);
-				parseStop(stopWrapper.getStop());
-				return;
-			} catch (Exception e) {
-			}
-
-			try {
-				MouseClickWrapper mouseClickWrapper = mapper.readValue(message, MouseClickWrapper.class);
-				parseMouseClick(mouseClickWrapper.getMouseClick());
-				return;
-			} catch (Exception e) {
 			}
 			
-			try {
-				KeyEventWrapper keyEventWrapper = mapper.readValue(message, KeyEventWrapper.class);
-				parseKeyEvent(keyEventWrapper.getKeyEvent());
+			VerifyCreateAnonymousAccess verifyCreateAnonymousAccess = wrapper.getVerifyCreateAnonymousAccess();
+			if (verifyCreateAnonymousAccess != null) {
+				parseVerifyCreateAnonymousAccess(verifyCreateAnonymousAccess);
 				return;
-			} catch (Exception e) {
+			}
+
+			Start start = wrapper.getStart();
+			if (start != null) {
+				parseStart(start);
+				return;
 			}
 			
+			Stop stop = wrapper.getStop();
+			if (stop != null) {
+				parseStop(stop);
+				return;
+			}
 
+			MouseClick mouseClick = wrapper.getMouseClick();
+			if (mouseClick != null) {
+				parseMouseClick(mouseClick);
+				return;
+			}
+	
+			KeyEvent keyEvent = wrapper.getKeyEvent();
+			if (keyEvent != null) {
+				parseKeyEvent(keyEvent);
+				return;
+			}
+			
+			System.out.println("Failed to get command from message.");
 		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void parseKeyEvent(KeyEvent keyEvent) {
-		application.keyEvent(keyEvent);
-	}
-
-	private void parseMouseClick(MouseClick mouseClick) {
-		application.mouseClick(mouseClick);
-	}
-
-	private void parseStop(Stop stop) {
-		if (stop.isStop()) {
-			capturer.stopCapture();
-		}
-	}
-
-	private void parseStart(Start start) {
-		if (start.isStart()) {
-			capturer.startCapture();
+			System.out.println("Failed to parse message as json: " + message);
 		}
 	}
 
@@ -141,39 +102,71 @@ public class MessageHandler {
 		accessPresenter.anonymousConnected(success);
 	}
 
-	public void sendCreateAnonymousAccess(String numericId, String numericPassword) {
-		CreateAnonymousAccess createAnonymousAccess = new CreateAnonymousAccess();
-		createAnonymousAccess.setNumericId(numericId);
-		createAnonymousAccess.setNumericPassword(numericPassword);
-		CreateAnonymousAccessWrapper createAnonymousAccessWrapper = new CreateAnonymousAccessWrapper();
-		createAnonymousAccessWrapper.setCreateAnonymousAccess(createAnonymousAccess);
-		send(createAnonymousAccessWrapper);
+	private void parseStart(Start start) {
+		if (start.isStart()) {
+			capturer.startCapture();
+		}
 	}
 
-	public void sendRemoveAnonymousAccess() {
-		RemoveAnonymousAccess removeAnonymousAccess = new RemoveAnonymousAccess();
-		removeAnonymousAccess.setRemove(true);
-		RemoveAnonymousAccessWrapper removeAnonymousAccessWrapper = new RemoveAnonymousAccessWrapper();
-		removeAnonymousAccessWrapper.setRemoveAnonymousAccess(removeAnonymousAccess);
-		send(removeAnonymousAccessWrapper);
+	private void parseStop(Stop stop) {
+		if (stop.isStop()) {
+			capturer.stopCapture();
+		}
+	}
 
+	private void parseMouseClick(MouseClick mouseClick) {
+		application.mouseClick(mouseClick);
+	}
+
+	private void parseKeyEvent(KeyEvent keyEvent) {
+		application.keyEvent(keyEvent);
+	}
+
+
+	public void sendIndentify() {
+		Identify identify = new Identify();
+		identify.setType(TYPE);
+		identify.setDeviceName(application.getDeviceName());
+		identify.setDeviceWidth(application.getDeviceWidth());
+		identify.setDeviceHeight(application.getDeviceHeight());
+		MessageWrapper wrapper = new MessageWrapper();
+		wrapper.setIdentify(identify);
+		send(wrapper);
 	}
 
 	public void sendCreateAccountAccess(String username, String password) {
 		CreateAccountAccess createAccountAccess = new CreateAccountAccess();
 		createAccountAccess.setUsername(username);
 		createAccountAccess.setPassword(password);
-		CreateAccountAccessWrapper createAccountAccessWrapper = new CreateAccountAccessWrapper();
-		createAccountAccessWrapper.setCreateAccountAccess(createAccountAccess);
-		send(createAccountAccessWrapper);
+		MessageWrapper wrapper = new MessageWrapper();
+		wrapper.setCreateAccountAccess(createAccountAccess);
+		send(wrapper);
+	}
+
+	public void sendCreateAnonymousAccess(String numericId, String numericPassword) {
+		CreateAnonymousAccess createAnonymousAccess = new CreateAnonymousAccess();
+		createAnonymousAccess.setNumericId(numericId);
+		createAnonymousAccess.setNumericPassword(numericPassword);
+		MessageWrapper wrapper = new MessageWrapper();
+		wrapper.setCreateAnonymousAccess(createAnonymousAccess);
+		send(wrapper);
 	}
 
 	public void sendRemoveAccountAccess() {
 		RemoveAccountAccess removeAccountAccess = new RemoveAccountAccess();
 		removeAccountAccess.setRemove(true);
-		RemoveAccountAccessWrapper removeAccountAccessWrapper = new RemoveAccountAccessWrapper();
-		removeAccountAccessWrapper.setRemoveAccountAccess(removeAccountAccess);
-		send(removeAccountAccessWrapper);
+		MessageWrapper wrapper = new MessageWrapper();
+		wrapper.setRemoveAccountAccess(removeAccountAccess);
+		send(wrapper);
+	}
+
+	public void sendRemoveAnonymousAccess() {
+		RemoveAnonymousAccess removeAnonymousAccess = new RemoveAnonymousAccess();
+		removeAnonymousAccess.setRemove(true);
+		MessageWrapper wrapper = new MessageWrapper();
+		wrapper.setRemoveAnonymousAccess(removeAnonymousAccess);
+		send(wrapper);
+
 	}
 
 	public void sendImagePiece(ImagePiece imagePiece) {
@@ -184,44 +177,17 @@ public class MessageHandler {
 		image.setY(area.getY());
 		image.setW(area.getWidth());
 		image.setH(area.getHeight());
-		ImageWrapper imageWrapper = new ImageWrapper();
-		imageWrapper.setImage(image);
-		send(imageWrapper);
+		MessageWrapper wrapper = new MessageWrapper();
+		wrapper.setImage(image);
+		send(wrapper);
 	}
 
-	public void sendImagePieces(List<ImagePiece> imagePieces) {
-		ImagesWrapper imagesWrapper = new ImagesWrapper();
-		List<Image> images = new ArrayList<>();
-		for (ImagePiece imagePiece : imagePieces) {
-			Image image = new Image();
-			image.setData(imagePiece.getEncodedString());
-			Rectangle area = imagePiece.getArea();
-			image.setX(area.getX());
-			image.setY(area.getY());
-			image.setW(area.getWidth());
-			image.setH(area.getHeight());
-			images.add(image);
-		}
-		imagesWrapper.setImages(images);
-		send(imagesWrapper);
-	}
-
-	public void sendIndentify() {
-		Identify identify = new Identify();
-		identify.setType("sender");
-		identify.setDeviceName(application.getDeviceName());
-		identify.setDeviceWidth(application.getDeviceWidth());
-		identify.setDeviceHeight(application.getDeviceHeight());
-		IdentifyWrapper identifyWrapper = new IdentifyWrapper();
-		identifyWrapper.setIdentify(identify);
-		send(identifyWrapper);
-	}
-
-	private void send(MessageWrapper messageWrapper) {
+	private void send(MessageWrapper wrapper) {
 		try {
-			ObjectMapper objectMapper = new ObjectMapper();
-			String string = objectMapper.writeValueAsString(messageWrapper);
-			this.session.getAsyncRemote().sendText(string);
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.setSerializationInclusion(Include.NON_NULL);
+			String string = mapper.writeValueAsString(wrapper);
+			session.send(string);
 			connectionPresenter.messageSent();
 		} catch (Exception e) {
 

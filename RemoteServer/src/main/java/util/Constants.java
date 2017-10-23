@@ -18,6 +18,4 @@ public class Constants {
 
 	public static final String NUMERIC_ID_REGEXP = "[0-9]{9}";
 
-
-
 }

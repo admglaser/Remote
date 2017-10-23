@@ -87,10 +87,6 @@ public class AccessPresenter extends Presenter<AccessScreen, AccessModel> {
 		screen.updateAnonymousConnectionStatus();
 	}
 
-	public void showMessage(String message) {
-		screen.showMessage(message);
-	}
-
 	public void accountConnected(boolean connected) {
 		LoginStatus loginStatus;
 		if (connected) {
@@ -102,5 +98,8 @@ public class AccessPresenter extends Presenter<AccessScreen, AccessModel> {
 		screen.updateAccountConnectionStatus();
 	}
 	
+	public void showMessage(String message) {
+		screen.showMessage(message);
+	}
 
 }

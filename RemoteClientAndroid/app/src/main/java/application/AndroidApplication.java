@@ -11,8 +11,8 @@ import android.view.WindowManager;
 import java.io.OutputStream;
 
 import main.Main;
-import model.json.KeyEvent;
-import model.json.MouseClick;
+import model.message.KeyEvent;
+import model.message.MouseClick;
 import remote.aut.bme.hu.remote.R;
 
 public class AndroidApplication implements Application {

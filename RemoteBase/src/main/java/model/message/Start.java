@@ -1,6 +1,6 @@
-package model.json;
+package model.message;
 
-public class Start implements Message {
+public class Start {
 
 	private boolean start;
 

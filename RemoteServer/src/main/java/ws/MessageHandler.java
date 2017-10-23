@@ -5,42 +5,29 @@ import java.util.UUID;
 
 import javax.websocket.Session;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import model.AnonymousAccess;
 import model.Client;
 import model.ClientType;
+import model.MessageWrapper;
 import model.User;
-import model.json.Connect;
-import model.json.ConnectWrapper;
-import model.json.CreateAccountAccess;
-import model.json.CreateAccountAccessWrapper;
-import model.json.CreateAnonymousAccess;
-import model.json.CreateAnonymousAccessWrapper;
-import model.json.Identify;
-import model.json.IdentifyWrapper;
-import model.json.Image;
-import model.json.ImageWrapper;
-import model.json.KeyEvent;
-import model.json.KeyEventWrapper;
-import model.json.MessageWrapper;
-import model.json.MouseClick;
-import model.json.MouseClickWrapper;
-import model.json.RemoveAccountAccess;
-import model.json.RemoveAccountAccessWrapper;
-import model.json.RemoveAnonymousAccess;
-import model.json.RemoveAnonymousAccessWrapper;
-import model.json.Start;
-import model.json.StartWrapper;
-import model.json.Stop;
-import model.json.StopWrapper;
-import model.json.VerifyConnect;
-import model.json.VerifyConnectWrapper;
-import model.json.VerifyCreateAccountAccess;
-import model.json.VerifyCreateAccountAccessWrapper;
-import model.json.VerifyCreateAnonymousAccess;
-import model.json.VerifyCreateAnonymousAccessWrapper;
+import model.message.Connect;
+import model.message.CreateAccountAccess;
+import model.message.CreateAnonymousAccess;
+import model.message.Identify;
+import model.message.Image;
+import model.message.KeyEvent;
+import model.message.MouseClick;
+import model.message.RemoveAccountAccess;
+import model.message.RemoveAnonymousAccess;
+import model.message.Start;
+import model.message.Stop;
+import model.message.VerifyConnect;
+import model.message.VerifyCreateAccountAccess;
+import model.message.VerifyCreateAnonymousAccess;
 import service.ClientService;
 import service.LoginService;
 
@@ -59,77 +46,70 @@ public class MessageHandler {
 	public void handleMessage(String message, Session session) {
 		this.session = session;
 		this.client = clientService.getClients().getClient(session);
+
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.setSerializationInclusion(Include.NON_NULL);
+
 		try {
-
-			ObjectMapper mapper = new ObjectMapper();
-
-			try {
-				ImageWrapper imageWrapper = mapper.readValue(message, ImageWrapper.class);
-				parseImage(imageWrapper.getImage());
+			MessageWrapper wrapper = mapper.readValue(message, MessageWrapper.class);
+	
+			Image image = wrapper.getImage();
+			if (image != null) {
+				parseImage(image);
 				return;
-			} catch (Exception e) {
 			}
-			
+	
 			System.out.println(message);
-
-			try {
-				ConnectWrapper connectWrapper = mapper.readValue(message, ConnectWrapper.class);
-				parseConnect(connectWrapper.getConnect());
+	
+			Connect connect = wrapper.getConnect();
+			if (connect != null) {
+				parseConnect(connect);
 				return;
-			} catch (Exception e) {
 			}
-
-			try {
-				IdentifyWrapper identifyWrapper = mapper.readValue(message, IdentifyWrapper.class);
-				parseIdentify(identifyWrapper.getIdentify());
+	
+			Identify identify = wrapper.getIdentify();
+			if (identify != null) {
+				parseIdentify(identify);
 				return;
-			} catch (Exception e) {
 			}
-
-			try {
-				CreateAnonymousAccessWrapper createAnonymousAccessWrapper = mapper.readValue(message, CreateAnonymousAccessWrapper.class);
-				parseCreateAnonymousAccess(createAnonymousAccessWrapper.getCreateAnonymousAccess());
+	
+			CreateAccountAccess createAccountAccess = wrapper.getCreateAccountAccess();
+			if (createAccountAccess != null) {
+				parseCreateAccountAccess(createAccountAccess);
 				return;
-			} catch (Exception e) {
 			}
-
-			try {
-				CreateAccountAccessWrapper createAccountAccessWrapper = mapper.readValue(message, CreateAccountAccessWrapper.class);
-				parseCreateAccountAccess(createAccountAccessWrapper.getCreateAccountAccess());
+	
+			CreateAnonymousAccess createAnonymousAccess = wrapper.getCreateAnonymousAccess();
+			if (createAnonymousAccess != null) {
+				parseCreateAnonymousAccess(createAnonymousAccess);
 				return;
-			} catch (Exception e) {
-				System.out.println(e);
 			}
-
-			try {
-				RemoveAnonymousAccessWrapper removeAnonymousAccessWrapper = mapper.readValue(message, RemoveAnonymousAccessWrapper.class);
-				parseRemoveAnonymousAccess(removeAnonymousAccessWrapper.getRemoveAnonymousAccess());
+	
+			RemoveAccountAccess removeAccountAccess = wrapper.getRemoveAccountAccess();
+			if (removeAccountAccess != null) {
+				parseRemoveAccountAccess(removeAccountAccess);
 				return;
-			} catch (Exception e) {
 			}
-			
-			try {
-				RemoveAccountAccessWrapper removeAccountAccessWrapper = mapper.readValue(message, RemoveAccountAccessWrapper.class);
-				parseRemoveAccountAccess(removeAccountAccessWrapper.getRemoveAccountAccess());
+	
+			RemoveAnonymousAccess removeAnonymousAccess = wrapper.getRemoveAnonymousAccess();
+			if (removeAnonymousAccess != null) {
+				parseRemoveAnonymousAccess(removeAnonymousAccess);
 				return;
-			} catch (Exception e) {
 			}
-
-			try {
-				MouseClickWrapper mouseClickWrapper = mapper.readValue(message, MouseClickWrapper.class);
-				parseMouseClick(mouseClickWrapper.getMouseClick());
+	
+			MouseClick mouseClick = wrapper.getMouseClick();
+			if (mouseClick != null) {
+				parseMouseClick(mouseClick);
 				return;
-			} catch (Exception e) {
 			}
-			
-			try {
-				KeyEventWrapper keyEventWrapper = mapper.readValue(message, KeyEventWrapper.class);
-				parseKeyEvent(keyEventWrapper.getKeyEvent());
+	
+			KeyEvent keyEvent = wrapper.getKeyEvent();
+			if (keyEvent != null) {
+				parseKeyEvent(keyEvent);
 				return;
-			} catch (Exception e) {
 			}
-
-			throw new Exception();
+	
+			System.out.println("Failed to get command from message.");
 		} catch (Exception e) {
 			System.out.println("Failed to parse message as json: " + message);
 		}
@@ -184,7 +164,7 @@ public class MessageHandler {
 	private void parseCreateAccountAccess(CreateAccountAccess createAccountAccess) {
 		String username = createAccountAccess.getUsername();
 		String password = createAccountAccess.getPassword();
-	
+
 		User user = loginService.getUser(username, password);
 		if (user == null) {
 			sendVerifyCreateAccountAccess(client, false);
@@ -192,7 +172,7 @@ public class MessageHandler {
 			sendVerifyCreateAccountAccess(client, true);
 			clientService.getClients().addAccountAccess(client, user);
 		}
-	
+
 		System.out.println("clients: " + clientService.getClients().getClients().size());
 	}
 
@@ -208,7 +188,7 @@ public class MessageHandler {
 		if (removeAccountAccess.isRemove()) {
 			clientService.getClients().removeAccountAccess(client);
 		}
-	
+
 		System.out.println("clients: " + clientService.getClients().getClients().size());
 	}
 
@@ -225,75 +205,15 @@ public class MessageHandler {
 	}
 
 	public void sendNotify(Client client) {
-		// TODO Auto-generated method stub
+		// TODO
 	}
 
 	public void sendStop(Client client) {
 		Stop stop = new Stop();
 		stop.setStop(true);
-		StopWrapper stopWrapper = new StopWrapper();
-		stopWrapper.setStop(stop);
-		send(client, stopWrapper);
-	}
-
-	private void sendStart(Client client) {
-		Start start = new Start();
-		start.setStart(true);
-		StartWrapper startWrapper = new StartWrapper();
-		startWrapper.setStart(start);
-		send(client, startWrapper);
-	}
-
-	private void sendKeyEvent(Client client, KeyEvent keyEvent) {
-		KeyEventWrapper keyEventWrapper = new KeyEventWrapper();
-		keyEventWrapper.setKeyEvent(keyEvent);
-		send(client, keyEventWrapper);
-	}
-
-	private void sendMouseClick(Client client, MouseClick mouseClick) {
-		MouseClickWrapper mouseClickWrapper = new MouseClickWrapper();
-		mouseClickWrapper.setMouseClick(mouseClick);
-		send(client, mouseClickWrapper);
-	}
-
-	private void sendImage(Client client, Image image) {
-		ImageWrapper imageWrapper = new ImageWrapper();
-		imageWrapper.setImage(image);
-		send(client, imageWrapper);
-	}
-
-	private void sendVerifyCreateAccountAccess(Client client, boolean success) {
-		VerifyCreateAccountAccess verifyCreateAccountAccess = new VerifyCreateAccountAccess();
-		verifyCreateAccountAccess.setSuccess(success);
-		VerifyCreateAccountAccessWrapper verifyCreateAccountAccessWrapper = new VerifyCreateAccountAccessWrapper();
-		verifyCreateAccountAccessWrapper.setVerifyCreateAccountAccess(verifyCreateAccountAccess);
-		send(client, verifyCreateAccountAccessWrapper);
-	}
-
-	private void sendVerifyCreateAnonymousAccess(Client client, boolean success) {
-		VerifyCreateAnonymousAccess verifyCreateAnonymousAccess = new VerifyCreateAnonymousAccess();
-		verifyCreateAnonymousAccess.setSuccess(success);
-		VerifyCreateAnonymousAccessWrapper verifyCreateAnonymousAccessWrapper = new VerifyCreateAnonymousAccessWrapper();
-		verifyCreateAnonymousAccessWrapper.setVerifyCreateAnonymousAccess(verifyCreateAnonymousAccess);
-		send(client, verifyCreateAnonymousAccessWrapper);
-	}
-
-	private void sendVerifyConnect(Client client) {
-		VerifyConnect verifyConnect = new VerifyConnect();
-		verifyConnect.setSuccess(true);
-		VerifyConnectWrapper verifyConnectWrapper = new VerifyConnectWrapper();
-		verifyConnectWrapper.setVerifyConnect(verifyConnect);
-		send(client, verifyConnectWrapper);
-	}
-
-	private void send(Client client, MessageWrapper messageWrapper) {
-		try {
-			ObjectMapper objectMapper = new ObjectMapper();
-			String string = objectMapper.writeValueAsString(messageWrapper);
-			client.getSession().getAsyncRemote().sendText(string);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		}
+		MessageWrapper wrapper = new MessageWrapper();
+		wrapper.setStop(stop);
+		send(client, wrapper);
 	}
 
 	public void onClose(Client client) {
@@ -312,6 +232,67 @@ public class MessageHandler {
 		}
 
 		System.out.println("clients: " + clientService.getClients().getClients().size());
+	}
+
+	private void sendStart(Client client) {
+		Start start = new Start();
+		start.setStart(true);
+		MessageWrapper wrapper = new MessageWrapper();
+		wrapper.setStart(start);
+		send(client, wrapper);
+	}
+
+	private void sendKeyEvent(Client client, KeyEvent keyEvent) {
+		MessageWrapper wrapper = new MessageWrapper();
+		wrapper.setKeyEvent(keyEvent);
+		send(client, wrapper);
+	}
+
+	private void sendMouseClick(Client client, MouseClick mouseClick) {
+		MessageWrapper wrapper = new MessageWrapper();
+		wrapper.setMouseClick(mouseClick);
+		send(client, wrapper);
+	}
+
+	private void sendImage(Client client, Image image) {
+		MessageWrapper wrapper = new MessageWrapper();
+		wrapper.setImage(image);
+		send(client, wrapper);
+	}
+
+	private void sendVerifyCreateAccountAccess(Client client, boolean success) {
+		VerifyCreateAccountAccess verifyCreateAccountAccess = new VerifyCreateAccountAccess();
+		verifyCreateAccountAccess.setSuccess(success);
+		MessageWrapper wrapper = new MessageWrapper();
+		wrapper.setVerifyCreateAccountAccess(verifyCreateAccountAccess);
+		send(client, wrapper);
+	}
+
+	private void sendVerifyCreateAnonymousAccess(Client client, boolean success) {
+		VerifyCreateAnonymousAccess verifyCreateAnonymousAccess = new VerifyCreateAnonymousAccess();
+		verifyCreateAnonymousAccess.setSuccess(success);
+		MessageWrapper wrapper = new MessageWrapper();
+		wrapper.setVerifyCreateAnonymousAccess(verifyCreateAnonymousAccess);
+		send(client, wrapper);
+	}
+
+	private void sendVerifyConnect(Client client) {
+		VerifyConnect verifyConnect = new VerifyConnect();
+		verifyConnect.setSuccess(true);
+		MessageWrapper wrapper = new MessageWrapper();
+		wrapper.setVerifyConnect(verifyConnect);
+		send(client, wrapper);
+	}
+
+	private void send(Client client, MessageWrapper wrapper) {
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.setSerializationInclusion(Include.NON_NULL);
+			String string = mapper.writeValueAsString(wrapper);
+			client.getSession().getAsyncRemote().sendText(string);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

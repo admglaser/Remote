@@ -1,6 +1,6 @@
-package model.json;
+package model.message;
 
-public class RemoveAnonymousAccess implements Message {
+public class RemoveAnonymousAccess {
 
 	private boolean remove;
 

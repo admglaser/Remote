@@ -1,6 +1,6 @@
-package model.json;
+package model.message;
 
-public class Image implements Message {
+public class Image {
 
 	private String data;
 	private int x;

@@ -1,6 +1,6 @@
-package model.json;
+package model.message;
 
-public class RemoveAccountAccess implements Message {
+public class RemoveAccountAccess {
 
 	private boolean remove;
 
