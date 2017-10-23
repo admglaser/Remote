@@ -1,0 +1,1 @@
+copy target\remote-client-swing-1.0.0-shaded.jar ..\RemoteClientSwing.jar

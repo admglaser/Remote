@@ -1,0 +1,1 @@
+copy target\remote-server-1.0.0.war ..\RemoteServer.war
