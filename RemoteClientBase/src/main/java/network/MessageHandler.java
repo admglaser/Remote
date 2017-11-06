@@ -1,7 +1,10 @@
 package network;
 
+import java.io.IOException;
+
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import application.Application;
 import capture.Capturer;
@@ -41,77 +44,78 @@ public class MessageHandler {
 		this.session = session;
 	}
 
-	public void handleMessage(String message) {
+	public void handleMessage(String message) throws NoCommandException, IOException {
 		connectionPresenter.messageReceived();
-		
+
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.setSerializationInclusion(Include.NON_NULL);
-		
-		try {
-			MessageWrapper wrapper = mapper.readValue(message, MessageWrapper.class);
-			
-			VerifyCreateAccountAccess verifyCreateAccountAccess = wrapper.getVerifyCreateAccountAccess();
-			if (verifyCreateAccountAccess != null) {
-				parseVerifyCreateAccountAccess(verifyCreateAccountAccess);
-				return;
-			}
-			
-			VerifyCreateAnonymousAccess verifyCreateAnonymousAccess = wrapper.getVerifyCreateAnonymousAccess();
-			if (verifyCreateAnonymousAccess != null) {
-				parseVerifyCreateAnonymousAccess(verifyCreateAnonymousAccess);
-				return;
-			}
+		mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
-			Start start = wrapper.getStart();
-			if (start != null) {
-				parseStart(start);
-				return;
-			}
-			
-			Stop stop = wrapper.getStop();
-			if (stop != null) {
-				parseStop(stop);
-				return;
-			}
+		MessageWrapper wrapper = mapper.readValue(message, MessageWrapper.class);
 
-			MouseClick mouseClick = wrapper.getMouseClick();
-			if (mouseClick != null) {
-				parseMouseClick(mouseClick);
-				return;
-			}
-	
-			KeyEvent keyEvent = wrapper.getKeyEvent();
-			if (keyEvent != null) {
-				parseKeyEvent(keyEvent);
-				return;
-			}
-			
-			System.out.println("Failed to get command from message.");
-		} catch (Exception e) {
-			System.out.println("Failed to parse message as json: " + message);
+		VerifyCreateAccountAccess verifyCreateAccountAccess = wrapper.getVerifyCreateAccountAccess();
+		if (verifyCreateAccountAccess != null) {
+			parseVerifyCreateAccountAccess(verifyCreateAccountAccess);
+			return;
 		}
+
+		VerifyCreateAnonymousAccess verifyCreateAnonymousAccess = wrapper.getVerifyCreateAnonymousAccess();
+		if (verifyCreateAnonymousAccess != null) {
+			parseVerifyCreateAnonymousAccess(verifyCreateAnonymousAccess);
+			return;
+		}
+
+		Start start = wrapper.getStart();
+		if (start != null) {
+			parseStart(start);
+			return;
+		}
+
+		Stop stop = wrapper.getStop();
+		if (stop != null) {
+			parseStop(stop);
+			return;
+		}
+
+		MouseClick mouseClick = wrapper.getMouseClick();
+		if (mouseClick != null) {
+			parseMouseClick(mouseClick);
+			return;
+		}
+
+		KeyEvent keyEvent = wrapper.getKeyEvent();
+		if (keyEvent != null) {
+			parseKeyEvent(keyEvent);
+			return;
+		}
+
+		throw new NoCommandException();
 	}
 
 	private void parseVerifyCreateAccountAccess(VerifyCreateAccountAccess verifyCreateAccountAccess) {
 		boolean success = verifyCreateAccountAccess.isSuccess();
-		accessPresenter.accountConnected(success);
+		if (success) {
+			accessPresenter.accountConnected();
+		} else {
+			accessPresenter.accountDisconnected();
+		}
 	}
 
 	private void parseVerifyCreateAnonymousAccess(VerifyCreateAnonymousAccess verifyCreateAnonymousAccess) {
 		boolean success = verifyCreateAnonymousAccess.isSuccess();
-		accessPresenter.anonymousConnected(success);
+		if (success) {
+			accessPresenter.anonymousConnected();
+		} else {
+			accessPresenter.anonymousDisconnected();
+		}
 	}
 
 	private void parseStart(Start start) {
-		if (start.isStart()) {
-			capturer.startCapture();
-		}
+		capturer.startCapture();
 	}
 
 	private void parseStop(Stop stop) {
-		if (stop.isStop()) {
-			capturer.stopCapture();
-		}
+		capturer.stopCapture();
 	}
 
 	private void parseMouseClick(MouseClick mouseClick) {
@@ -121,7 +125,6 @@ public class MessageHandler {
 	private void parseKeyEvent(KeyEvent keyEvent) {
 		application.keyEvent(keyEvent);
 	}
-
 
 	public void sendIndentify() {
 		Identify identify = new Identify();
@@ -154,7 +157,6 @@ public class MessageHandler {
 
 	public void sendRemoveAccountAccess() {
 		RemoveAccountAccess removeAccountAccess = new RemoveAccountAccess();
-		removeAccountAccess.setRemove(true);
 		MessageWrapper wrapper = new MessageWrapper();
 		wrapper.setRemoveAccountAccess(removeAccountAccess);
 		send(wrapper);
@@ -162,7 +164,6 @@ public class MessageHandler {
 
 	public void sendRemoveAnonymousAccess() {
 		RemoveAnonymousAccess removeAnonymousAccess = new RemoveAnonymousAccess();
-		removeAnonymousAccess.setRemove(true);
 		MessageWrapper wrapper = new MessageWrapper();
 		wrapper.setRemoveAnonymousAccess(removeAnonymousAccess);
 		send(wrapper);
@@ -186,11 +187,12 @@ public class MessageHandler {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			mapper.setSerializationInclusion(Include.NON_NULL);
+			mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 			String string = mapper.writeValueAsString(wrapper);
 			session.send(string);
 			connectionPresenter.messageSent();
 		} catch (Exception e) {
-
+			e.printStackTrace();
 		}
 	}
 

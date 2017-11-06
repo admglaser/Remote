@@ -156,6 +156,8 @@ function onMessage(msg) {
 		var w = imageJson["w"];
 		var h = imageJson["h"];
 		drawImage(data, x, y, w, h);
+	} else if ("notify" in json) {
+		alert("Device has disconnected!");
 	}
 }
 

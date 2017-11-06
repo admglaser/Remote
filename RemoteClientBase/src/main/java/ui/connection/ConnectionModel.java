@@ -27,7 +27,6 @@ public class ConnectionModel {
 
 	public void setConnectionStatus(ConnectionStatus connectionStatus) {
 		this.connectionStatus = connectionStatus;
-
 	}
 
 	public int getSentMessages() {

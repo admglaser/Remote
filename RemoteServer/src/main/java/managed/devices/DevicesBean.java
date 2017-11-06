@@ -2,8 +2,8 @@ package managed.devices;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
@@ -32,12 +32,12 @@ public class DevicesBean {
 
 	@PostConstruct
 	public void init() {
-		clients = new ArrayList<>();
+		this.clients = new ArrayList<>();
 		User user = sessionBean.getUser();
 		if (user != null) {
-			Collection<Client> clients2 = clientService.getClients().getClients(user);
-			System.out.println(clients2.size());
-			clients.addAll(clients2);
+			Set<Client> clients = clientService.findClientsByUser(user);
+			System.out.println(clients.size());
+			this.clients.addAll(clients);
 		}
 	}
 	

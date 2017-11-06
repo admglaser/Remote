@@ -1,6 +1,8 @@
 package model;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.websocket.Session;
 
@@ -14,10 +16,12 @@ public class Client {
 	private int deviceHeight;
 	private Date connected;
 	
-	public Session getSession() {
-		return session;
-	}
-
+	private User user;
+	private AnonymousAccess anonymousAccess;
+	
+	private Set<Client> receivers;
+	private Client sender;
+	
 	public Client(String id, String deviceName, int deviceWidth, int deviceHeight, ClientType type, Session session) {
 		this.id = id;
 		this.deviceName = deviceName;
@@ -26,6 +30,9 @@ public class Client {
 		this.session = session;
 		this.type = type;
 		this.connected = new Date();
+		if (type == ClientType.SENDER) {
+			receivers = new HashSet<>();
+		}
 	}
 	
 	@Override
@@ -37,6 +44,10 @@ public class Client {
 			}
 		}
 		return false;
+	}
+
+	public Session getSession() {
+		return session;
 	}
 
 	public String getId() {
@@ -61,6 +72,34 @@ public class Client {
 
 	public Date getConnectedDate() {
 		return connected;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public AnonymousAccess getAnonymousAccess() {
+		return anonymousAccess;
+	}
+	
+	public Client getSender() {
+		return sender;
+	}
+
+	public Set<Client> getReceivers() {
+		return receivers;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public void setAnonymousAccess(AnonymousAccess anonymousAccess) {
+		this.anonymousAccess = anonymousAccess;
+	}
+
+	public void setSender(Client sender) {
+		this.sender = sender;
 	}
 
 }

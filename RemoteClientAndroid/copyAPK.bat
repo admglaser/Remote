@@ -1,1 +1,1 @@
-copy app\build\outputs\apk\app-release.apk ..\RemoteClientAndroid.apk
+copy app\build\outputs\apk\release\app-release.apk ..\RemoteClientAndroid.apk

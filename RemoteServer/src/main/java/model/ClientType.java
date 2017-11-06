@@ -15,4 +15,9 @@ public enum ClientType {
 		}
 	}
 	
+	@Override
+	public String toString() {
+		return super.toString().toLowerCase();
+	}
+	
 }

@@ -46,8 +46,8 @@ public class AccessFragment extends Fragment implements AccessScreen {
 
     public AccessFragment() {
         Main.injector.inject(this);
-        presenter.attachScreen(this);
-        presenter.attachServerConnection(serverConnection);
+        presenter.setScreen(this);
+        presenter.setServerConnection(serverConnection);
     }
 
     @Override

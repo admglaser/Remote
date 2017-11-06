@@ -25,10 +25,10 @@ public class WebsocketClientEndpointWithInject extends WebsocketClientEndpoint {
     @Override
     public void connect(String address) {
         Main.injector.inject(this);
-        super.attachApplication(application);
-        super.attachCapturer(capturer);
-        super.attachAccessPresenter(accessPresenter);
-        super.attachConnectionPresenter(connectionPresenter);
+        super.setApplication(application);
+        super.setCapturer(capturer);
+        super.setConnectionPresenter(connectionPresenter);
+        super.setAccessPresenter(accessPresenter);
         super.connect(address);
     }
 

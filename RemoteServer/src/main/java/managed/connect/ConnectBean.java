@@ -45,7 +45,7 @@ public class ConnectBean {
 		}
 
 		AnonymousAccess anonymousAccess = new AnonymousAccess(id, password);
-		Client client = clientService.getClients().getClient(anonymousAccess);
+		Client client = clientService.findClientByAccess(anonymousAccess);
 		if (client == null) {
 			FacesUtils.addMessage("Invalid id or password.", FacesMessage.SEVERITY_ERROR, connectButton);
 			return;

@@ -130,16 +130,15 @@ public class SwingApplication extends JFrame implements Application {
 				mask = InputEvent.BUTTON3_DOWN_MASK;
 				break;
 			default:
-				throw new Exception("Unhandled button for mouseClick.");
+				throw new RuntimeException("Unhandled button for mouseClick.");
 			}
 			if (mask != -1) {
 				robot.mousePress(mask);
 				robot.mouseRelease(mask);
 			}
-		} catch (Exception e) {
+		} catch (AWTException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	@Override
@@ -179,6 +178,7 @@ public class SwingApplication extends JFrame implements Application {
 			InetAddress localMachine = InetAddress.getLocalHost();
 			return localMachine.getHostName();
 		} catch (UnknownHostException e) {
+			e.printStackTrace();
 		}
 		return "unknown";
 	}

@@ -30,15 +30,37 @@ public class WebsocketClientEndpoint extends Endpoint implements javax.websocket
 	private Session session;
 	private MessageHandler messageHandler;
 
-	public void connect(String address) {
-		try {
-			URI endpointURI = new URI("ws://" + address + ":8080/remote/websocket");
-			ClientManager clientManager = ClientManager.createClient();
-			clientManager.connectToServer(this, ClientEndpointConfig.Builder.create().build(), endpointURI);
-		} catch (Exception e) {
-			connectionPresenter.connected(false);
-			connectionPresenter.showMessage("Cannot connect to server.");
-		}
+	public void setApplication(Application application) {
+		this.application = application;
+	}
+
+	public void setCapturer(Capturer capturer) {
+		this.capturer = capturer;
+	}
+
+	public void setAccessPresenter(AccessPresenter accessPresenter) {
+		this.accessPresenter = accessPresenter;
+	}
+
+	public void setConnectionPresenter(ConnectionPresenter connectionPresenter) {
+		this.connectionPresenter = connectionPresenter;
+	}
+
+	public void connect(final String address) {
+		final WebsocketClientEndpoint pointer = this;
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					URI endpointURI = new URI("ws://" + address + ":8080/remote/websocket");
+					ClientManager clientManager = ClientManager.createClient();
+					clientManager.connectToServer(pointer, ClientEndpointConfig.Builder.create().build(), endpointURI);
+				} catch (Exception e) {
+					connectionPresenter.disconnected();
+					connectionPresenter.showMessage("Cannot connect to server.");
+				}
+			}
+		}).start();
 	}
 
 	@Override
@@ -47,7 +69,7 @@ public class WebsocketClientEndpoint extends Endpoint implements javax.websocket
 
 		this.session = session;
 		System.out.println("onOpen: " + session.getId());
-		connectionPresenter.connected(true);
+		connectionPresenter.connected();
 		application.showMessage("Connected to server!");
 
 		messageHandler = new MessageHandler(new WebsocketSession(session));
@@ -64,15 +86,22 @@ public class WebsocketClientEndpoint extends Endpoint implements javax.websocket
 		System.out.println("onClose: " + reason);
 		application.showMessage("Disconnected from server!");
 		capturer.stopCapture();
-		connectionPresenter.connected(false);
-		accessPresenter.accountConnected(false);
-		accessPresenter.anonymousConnected(false);
+		connectionPresenter.disconnected();
+		accessPresenter.accountDisconnected();
+		accessPresenter.anonymousDisconnected();
 	}
 
 	@Override
 	public void onMessage(String message) {
 		System.out.println("onMessage: " + message);
-		messageHandler.handleMessage(message);
+		
+		try {
+			messageHandler.handleMessage(message);
+		} catch (IOException e) {
+			System.out.println("Failed to process message: " + e.getMessage());
+		} catch (NoCommandException e) {
+			System.out.println("Failed to get command from message.");
+		}
 	}
 
 	public void disconnect() {
@@ -85,22 +114,6 @@ public class WebsocketClientEndpoint extends Endpoint implements javax.websocket
 
 	public boolean isConnected() {
 		return session != null && session.isOpen();
-	}
-
-	public void attachApplication(Application application) {
-		this.application = application;
-	}
-
-	public void attachCapturer(Capturer capturer) {
-		this.capturer = capturer;
-	}
-
-	public void attachAccessPresenter(AccessPresenter accessPresenter) {
-		this.accessPresenter = accessPresenter;
-	}
-
-	public void attachConnectionPresenter(ConnectionPresenter connectionPresenter) {
-		this.connectionPresenter = connectionPresenter;
 	}
 
 	public void connectAnonymous(String id, String password) {

@@ -45,8 +45,8 @@ public class ConnectionFragment extends Fragment implements ConnectionScreen {
 
     public ConnectionFragment() {
         Main.injector.inject(this);
-        presenter.attachScreen(this);
-        presenter.attachServerConnection(serverConnection);
+        presenter.setScreen(this);
+        presenter.setServerConnection(serverConnection);
     }
 
     @Override

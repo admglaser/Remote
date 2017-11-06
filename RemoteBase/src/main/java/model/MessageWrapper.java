@@ -7,6 +7,7 @@ import model.message.Identify;
 import model.message.Image;
 import model.message.KeyEvent;
 import model.message.MouseClick;
+import model.message.Notify;
 import model.message.RemoveAccountAccess;
 import model.message.RemoveAnonymousAccess;
 import model.message.Start;
@@ -30,6 +31,8 @@ public class MessageWrapper {
 	private KeyEvent keyEvent;
 	
 	private MouseClick mouseClick;
+	
+	private Notify notify;
 	
 	private RemoveAccountAccess removeAccountAccess;
 	
@@ -100,6 +103,15 @@ public class MessageWrapper {
 	public void setMouseClick(MouseClick mouseClick) {
 		this.mouseClick = mouseClick;
 	}
+	
+	public Notify getNotify() {
+		return notify;
+	}
+
+	public void setNotify(Notify notify) {
+		this.notify = notify;
+	}
+
 
 	public RemoveAccountAccess getRemoveAccountAccess() {
 		return removeAccountAccess;

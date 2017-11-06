@@ -55,8 +55,8 @@ public class AccessPanel extends JPanel implements AccessScreen {
 
 	public AccessPanel() {
 		Main.injector.inject(this);
-		presenter.attachScreen(this);
-		presenter.attachServerConnection(serverConnection);
+		presenter.setScreen(this);
+		presenter.setServerConnection(serverConnection);
 
 		createAnonymousIdFormatter();
 

@@ -39,8 +39,8 @@ public class ConnectionPanel extends JPanel implements ConnectionScreen {
 	public ConnectionPanel() {
 		setBorder(new EmptyBorder(10, 10, 10, 10));
 		Main.injector.inject(this);
-		presenter.attachScreen(this);
-		presenter.attachServerConnection(serverConnection);
+		presenter.setScreen(this);
+		presenter.setServerConnection(serverConnection);
 		
 		initComponents();
 		String address = System.getProperty("remote.address");

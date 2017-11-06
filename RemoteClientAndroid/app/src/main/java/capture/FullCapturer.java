@@ -40,12 +40,11 @@ public class FullCapturer implements Capturer, Runnable {
 
     @Override
     public void run() {
-
         isCapturing = true;
         while (isCapturing) {
             sendImage();
             try {
-                Thread.sleep(100);
+                Thread.sleep(10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -54,7 +53,7 @@ public class FullCapturer implements Capturer, Runnable {
 
     private void sendImage() {
         try {
-            byte[] byteArray = ImageUtils.getCapturedImageBytes();
+            byte[] byteArray = new ImageCapturer().getCapturedImageBytes();
             String encodedString = Base64.encodeToString(byteArray, Base64.DEFAULT);
             Rectangle rect = new Rectangle(0, 0, 1080, 1920);
             ImagePiece imagePiece = new ImagePiece(rect, encodedString);

@@ -28,7 +28,7 @@ public class ClientsBean {
 	public void init() {
 		senders = new ArrayList<>();
 		receivers = new ArrayList<>();
-		for (Client client : clientService.getClients().getClients()) {
+		for (Client client : clientService.getClients()) {
 			if (client.getType() == ClientType.SENDER) {
 				senders.add(client);
 			} else if (client.getType() == ClientType.RECEIVER) {
@@ -59,7 +59,7 @@ public class ClientsBean {
 	
 	public List<Client> getReceivers(Client sender) {
 		List<Client> list = new ArrayList<>();
-		list.addAll(clientService.getClientPairings().getReceivers(sender));
+		list.addAll(sender.getReceivers());
 		return list;
 	}
 	

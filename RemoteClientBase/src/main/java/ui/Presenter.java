@@ -8,22 +8,29 @@ public abstract class Presenter<S, M> {
 	protected M model;
 	protected ServerConnection serverConnection;
 
-    public void attachScreen(S screen) {
+    public void setScreen(S screen) {
         this.screen = screen;
     }
 
-    public void attachModel(M model) {
+    public void setModel(M model) {
     	this.model = model;
     }
     
-    public void attachServerConnection(ServerConnection serverConnection) {
+    public void setServerConnection(ServerConnection serverConnection) {
     	this.serverConnection = serverConnection;
+    }
+    
+    public S getScreen() {
+    	return screen;
     }
     
     public M getModel() {
     	return model;
     }
-    
-    
+
+	public ServerConnection getServerConnection() {
+		return serverConnection;
+	}
+
 }
 
