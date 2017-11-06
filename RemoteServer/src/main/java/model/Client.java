@@ -6,6 +6,8 @@ import java.util.Set;
 
 import javax.websocket.Session;
 
+import entity.Account;
+
 public class Client {
 
 	private Session session;
@@ -16,7 +18,7 @@ public class Client {
 	private int deviceHeight;
 	private Date connected;
 	
-	private User user;
+	private Account account;
 	private AnonymousAccess anonymousAccess;
 	
 	private Set<Client> receivers;
@@ -74,8 +76,8 @@ public class Client {
 		return connected;
 	}
 
-	public User getUser() {
-		return user;
+	public Account getAccount() {
+		return account;
 	}
 
 	public AnonymousAccess getAnonymousAccess() {
@@ -90,8 +92,8 @@ public class Client {
 		return receivers;
 	}
 
-	public void setUser(User user) {
-		this.user = user;
+	public void setAccount(Account user) {
+		this.account = user;
 	}
 
 	public void setAnonymousAccess(AnonymousAccess anonymousAccess) {

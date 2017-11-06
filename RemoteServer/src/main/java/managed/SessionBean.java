@@ -5,8 +5,8 @@ import java.io.IOException;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 
+import entity.Account;
 import model.Client;
-import model.User;
 import util.Constants;
 import util.FacesUtils;
 
@@ -14,7 +14,7 @@ import util.FacesUtils;
 @SessionScoped
 public class SessionBean {
 
-	private User user;
+	private Account user;
 	private Client client;
 
 	public void logout() throws IOException {
@@ -22,11 +22,11 @@ public class SessionBean {
 		FacesUtils.redirect(Constants.PAGE_INDEX);
 	}
 
-	public User getUser() {
+	public Account getUser() {
 		return user;
 	}
 
-	public void setUser(User user) {
+	public void setUser(Account user) {
 		this.user = user;
 	}
 

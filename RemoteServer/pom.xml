@@ -13,7 +13,6 @@
 	<artifactId>remote-server</artifactId>
 	<packaging>war</packaging>
 
-
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -108,11 +107,18 @@
 	<dependencies>
 
 		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>22.0</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.glassfish.main.extras</groupId>
 			<artifactId>glassfish-embedded-all</artifactId>
 			<version>4.1.2</version>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.jboss.arquillian.container</groupId>
 			<artifactId>arquillian-glassfish-embedded-3.1</artifactId>

@@ -15,8 +15,8 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import model.Client;
+import service.AccountService;
 import service.ClientService;
-import service.LoginService;
 
 @ServerEndpoint("/websocket")
 public class WebsocketServer {
@@ -25,7 +25,7 @@ public class WebsocketServer {
 	private ClientService clientService;
 
 	@EJB
-	private LoginService loginService;
+	private AccountService accountService;
 
 	@OnOpen
 	public void onOpen(Session session) {
@@ -36,9 +36,9 @@ public class WebsocketServer {
 	public void onClose(Session session) {
 		System.out.println("close");
 		ClientService clientService = getClientService();
-		LoginService loginService = getLoginService();
+		AccountService accountService = getLoginService();
 		Client client = clientService.findClientBySession(session);
-		new MessageHandler(clientService, loginService).onClose(client);
+		new MessageHandler(clientService, accountService).onClose(client);
 	}
 
 	@OnError
@@ -69,14 +69,14 @@ public class WebsocketServer {
 	}
 
 	@SuppressWarnings("unchecked")
-	public LoginService getLoginService() {
-		if (loginService == null) {
+	public AccountService getLoginService() {
+		if (accountService == null) {
 			BeanManager bm = CDI.current().getBeanManager();
-			Bean<LoginService> bean = (Bean<LoginService>) bm.getBeans(LoginService.class).iterator().next();
-			CreationalContext<LoginService> ctx = bm.createCreationalContext(bean);
-			loginService = (LoginService) bm.getReference(bean, LoginService.class, ctx);
+			Bean<AccountService> bean = (Bean<AccountService>) bm.getBeans(AccountService.class).iterator().next();
+			CreationalContext<AccountService> ctx = bm.createCreationalContext(bean);
+			accountService = (AccountService) bm.getReference(bean, AccountService.class, ctx);
 		}
-		return loginService;
+		return accountService;
 	}
 
 }

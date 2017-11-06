@@ -1,4 +1,4 @@
-package model;
+package entity;
 
 import java.io.Serializable;
 
@@ -8,8 +8,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-@Entity(name = "user")
-public class User implements Serializable {
+@Entity(name = "account")
+public class Account implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -28,7 +28,7 @@ public class User implements Serializable {
 	@Column(name = "admin")
 	private boolean admin;
 
-	public User() {
+	public Account() {
 	}
 
 	public int getId() {
@@ -81,8 +81,8 @@ public class User implements Serializable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof User) {
-			User user = (User) obj;
+		if (obj instanceof Account) {
+			Account user = (Account) obj;
 			return user.getId() == this.id;
 		}
 		return false;

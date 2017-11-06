@@ -9,7 +9,7 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.component.UIComponent;
 
-import service.RegisterService;
+import service.AccountService;
 import util.FacesUtils;
 
 @ManagedBean
@@ -23,14 +23,14 @@ public class RegisterBean {
 	private UIComponent registerButton;
 
 	@EJB
-	private RegisterService registerService;
+	private AccountService accountService;
 
 	public void register() throws IOException {
 		String message = null;
 		Severity severity = null;
 		try {
 			validateFields();
-			registerService.register(username, password);
+			accountService.registerAccount(username, password);
 			message = "Successfully registered.";
 			severity = FacesMessage.SEVERITY_INFO;
 		} catch (Exception e) {
@@ -38,7 +38,6 @@ public class RegisterBean {
 			severity = FacesMessage.SEVERITY_ERROR;
 		}
 		FacesUtils.addMessage(message, severity, registerButton);
-//		FacesUtils.redirect(Constants.REGISTER);
 	}
 
 	private void validateFields() throws Exception {

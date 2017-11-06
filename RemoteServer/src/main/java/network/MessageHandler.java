@@ -11,11 +11,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import entity.Account;
 import model.AnonymousAccess;
 import model.Client;
 import model.ClientType;
 import model.MessageWrapper;
-import model.User;
 import model.message.Connect;
 import model.message.CreateAccountAccess;
 import model.message.CreateAnonymousAccess;
@@ -31,19 +31,19 @@ import model.message.Stop;
 import model.message.VerifyConnect;
 import model.message.VerifyCreateAccountAccess;
 import model.message.VerifyCreateAnonymousAccess;
+import service.AccountService;
 import service.ClientService;
-import service.LoginService;
 
 public class MessageHandler {
 
 	protected ClientService clientService;
-	protected LoginService loginService;
+	protected AccountService accountService;
 	protected Client client;
 	protected Session session;
 
-	public MessageHandler(ClientService clientService, LoginService loginService) {
+	public MessageHandler(ClientService clientService, AccountService accountService) {
 		this.clientService = clientService;
-		this.loginService = loginService;
+		this.accountService = accountService;
 	}
 
 	public void handleMessage(String message, Session session) throws NoCommandException, IOException {
@@ -131,12 +131,12 @@ public class MessageHandler {
 		String username = createAccountAccess.getUsername();
 		String password = createAccountAccess.getPassword();
 	
-		User user = loginService.getUser(username, password);
+		Account user = accountService.getAccount(username, password);
 		if (user == null) {
 			sendVerifyCreateAccountAccess(client, false);
 		} else {
 			sendVerifyCreateAccountAccess(client, true);
-			client.setUser(user);
+			client.setAccount(user);
 		}
 	
 		System.out.println("clients: " + clientService.getClients().size());
@@ -157,7 +157,7 @@ public class MessageHandler {
 	}
 
 	private void parseRemoveAccountAccess(RemoveAccountAccess removeAccountAccess) {
-		client.setUser(null);
+		client.setAccount(null);
 	
 		System.out.println("clients: " + clientService.getClients().size());
 	}
@@ -282,7 +282,7 @@ public class MessageHandler {
 		send(client, wrapper);
 	}
 
-	private void send(Client client, MessageWrapper wrapper) {
+	public void send(Client client, MessageWrapper wrapper) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			mapper.setSerializationInclusion(Include.NON_NULL);

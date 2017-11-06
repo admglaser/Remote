@@ -19,11 +19,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import entity.Account;
 import model.AnonymousAccess;
 import model.Client;
 import model.ClientType;
 import model.MessageWrapper;
-import model.User;
 import model.message.Connect;
 import model.message.CreateAccountAccess;
 import model.message.CreateAnonymousAccess;
@@ -40,7 +40,7 @@ import model.message.VerifyConnect;
 import model.message.VerifyCreateAccountAccess;
 import model.message.VerifyCreateAnonymousAccess;
 import service.ClientService;
-import service.LoginService;
+import service.AccountService;
 
 public class MessageHandlerTest {
 
@@ -55,14 +55,14 @@ private ObjectMapper mapper;
 
 	@Test(expected=NoCommandException.class)
 	public void expectNoCommandException() throws Exception {
-		MessageHandler messageHandler = new MessageHandler(mock(ClientService.class), mock(LoginService.class));
+		MessageHandler messageHandler = new MessageHandler(mock(ClientService.class), mock(AccountService.class));
 
 		messageHandler.handleMessage(getNoCommandMessage(), mock(Session.class));
 	}
 	
 	@Test(expected=JsonParseException.class)
 	public void expectIOException() throws Exception {
-		MessageHandler messageHandler = new MessageHandler(mock(ClientService.class), mock(LoginService.class));
+		MessageHandler messageHandler = new MessageHandler(mock(ClientService.class), mock(AccountService.class));
 
 		messageHandler.handleMessage(getUnparsableJsonMessage(), mock(Session.class));
 	}
@@ -71,7 +71,7 @@ private ObjectMapper mapper;
 	public void handleIdentify() throws Exception {
 		Client client = getClient();
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(LoginService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
 		
 		when(clientService.getClients()).thenReturn(new HashSet<Client>());
 		
@@ -88,14 +88,14 @@ private ObjectMapper mapper;
 	public void handleCreateAccountAccess() throws Exception {
 		Client client = getClient();
 		ClientService clientService = mock(ClientService.class);
-		LoginService loginService = mock(LoginService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, loginService);
+		AccountService AccountService = mock(AccountService.class);
+		MessageHandler messageHandler = new MessageHandler(clientService, AccountService);
 		String username = "username";
 		String password = "password";
 		
 		when(clientService.findClientBySession(client.getSession())).thenReturn(client);
 		when(client.getSession().getAsyncRemote()).thenReturn(mock(Async.class));
-		when(loginService.getUser(username, password)).thenReturn(new User());
+		when(AccountService.getAccount(username, password)).thenReturn(new Account());
 		
 		messageHandler.handleMessage(getCreateAccountAccessMessage(username, password), client.getSession());
 		
@@ -106,7 +106,7 @@ private ObjectMapper mapper;
 	public void handleCreateAnonymousAccess() throws Exception {
 		Client client = getClient();
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(LoginService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
 		String id = "123456789";
 		String password = "1234";
 		AnonymousAccess anonymousAccess = new AnonymousAccess(id, password);
@@ -123,14 +123,14 @@ private ObjectMapper mapper;
 	@Test
 	public void handleRemoveAccountAccess() throws Exception {
 		Client client = getClient();
-		client.setUser(new User());
+		client.setAccount(new Account());
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(LoginService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
 		
 		when(clientService.findClientBySession(client.getSession())).thenReturn(client);
 		messageHandler.handleMessage(getRemoveAccountsAccess(), client.getSession());
 		
-		assertEquals(null, client.getUser());
+		assertEquals(null, client.getAccount());
 	}
 	
 	@Test
@@ -138,7 +138,7 @@ private ObjectMapper mapper;
 		Client client = getClient();
 		client.setAnonymousAccess(new AnonymousAccess("123456789", "1234"));
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(LoginService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
 		
 		when(clientService.findClientBySession(client.getSession())).thenReturn(client);
 		messageHandler.handleMessage(getRemoveAnonymousAccess(), client.getSession());
@@ -151,7 +151,7 @@ private ObjectMapper mapper;
 		Client receiver = new Client("id1", null, 0, 0, ClientType.RECEIVER, mock(Session.class));
 		Client sender = new Client("id2", "device", 100, 100, ClientType.SENDER, mock(Session.class));
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(LoginService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
 		
 		when(clientService.findClientBySession(receiver.getSession())).thenReturn(receiver);
 		when(clientService.findClientById(sender.getId())).thenReturn(sender);
@@ -174,7 +174,7 @@ private ObjectMapper mapper;
 		sender.getReceivers().add(receiver1);
 		sender.getReceivers().add(receiver2);
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(LoginService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
 		
 		when(clientService.findClientBySession(sender.getSession())).thenReturn(sender);
 		when(receiver1.getSession().getAsyncRemote()).thenReturn(mock(Async.class));
@@ -192,7 +192,7 @@ private ObjectMapper mapper;
 		Client sender = new Client("id2", "device", 100, 100, ClientType.SENDER, mock(Session.class));
 		receiver.setSender(sender);
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(LoginService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
 		
 		when(clientService.findClientBySession(receiver.getSession())).thenReturn(receiver);
 		when(sender.getSession().getAsyncRemote()).thenReturn(mock(Async.class));
@@ -208,7 +208,7 @@ private ObjectMapper mapper;
 		Client sender = new Client("id2", "device", 100, 100, ClientType.SENDER, mock(Session.class));
 		receiver.setSender(sender);
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(LoginService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
 		
 		when(clientService.findClientBySession(receiver.getSession())).thenReturn(receiver);
 		when(sender.getSession().getAsyncRemote()).thenReturn(mock(Async.class));
@@ -225,7 +225,7 @@ private ObjectMapper mapper;
 		receiver.setSender(sender);
 		sender.getReceivers().add(receiver);
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(LoginService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
 		
 		when(clientService.removeSenderAndReturnReceiversToNotify(sender)).thenReturn(sender.getReceivers());
 		when(receiver.getSession().getAsyncRemote()).thenReturn(mock(Async.class));
@@ -242,7 +242,7 @@ private ObjectMapper mapper;
 		receiver.setSender(sender);
 		sender.getReceivers().add(receiver);
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(LoginService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
 		
 		when(clientService.removeReceiverAndReturnSenderToStopIfLastReceiver(receiver)).thenReturn(receiver.getSender());
 		when(sender.getSession().getAsyncRemote()).thenReturn(mock(Async.class));

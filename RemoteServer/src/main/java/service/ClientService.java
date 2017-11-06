@@ -7,9 +7,9 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.websocket.Session;
 
+import entity.Account;
 import model.AnonymousAccess;
 import model.Client;
-import model.User;
 
 @Startup
 @Singleton
@@ -43,10 +43,10 @@ public class ClientService {
 		return null;
 	}
 
-	public Set<Client> findClientsByUser(User user) {
+	public Set<Client> findClientsByAccount(Account account) {
 		Set<Client> clients = new HashSet<>();
 		for (Client client : this.clients) {
-			if (user.equals(client.getUser())) {
+			if (account.equals(client.getAccount())) {
 				clients.add(client);
 			}
 		}

@@ -10,8 +10,8 @@ import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.ViewScoped;
 import javax.faces.component.UIComponent;
 
+import entity.Account;
 import managed.SessionBean;
-import model.User;
 import service.AccountService;
 import util.FacesUtils;
 
@@ -35,7 +35,7 @@ public class AccountBean {
 		String message = null;
 		Severity severity = null;
 		try {
-			User user = sessionBean.getUser();
+			Account user = sessionBean.getUser();
 			if (user == null) {
 				throw new Exception("Internal error.");
 			}

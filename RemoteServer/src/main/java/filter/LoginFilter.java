@@ -13,8 +13,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import entity.Account;
 import managed.SessionBean;
-import model.User;
 import util.Constants;
 
 @WebFilter(filterName = "filter", urlPatterns = "*")
@@ -63,7 +63,7 @@ public class LoginFilter implements Filter {
 	private boolean isLoggedIn(HttpSession session) {
 		SessionBean sessionBean = (SessionBean) session.getAttribute("sessionBean");
 		if (sessionBean != null) {
-			User user = sessionBean.getUser();
+			Account user = sessionBean.getUser();
 			return user != null;
 		}
 		return false;
@@ -72,7 +72,7 @@ public class LoginFilter implements Filter {
 	private boolean isAdmin(HttpSession session) {
 		SessionBean sessionBean = (SessionBean) session.getAttribute("sessionBean");
 		if (sessionBean != null) {
-			User user = sessionBean.getUser();
+			Account user = sessionBean.getUser();
 			return user != null && user.isAdmin();
 		}
 		return false;

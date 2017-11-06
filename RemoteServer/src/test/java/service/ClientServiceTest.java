@@ -10,17 +10,17 @@ import javax.websocket.Session;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.EmptyAsset;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import entity.Account;
 import model.AnonymousAccess;
 import model.Client;
 import model.ClientType;
-import model.User;
 
 @RunWith(Arquillian.class)
 public class ClientServiceTest {
@@ -29,9 +29,9 @@ public class ClientServiceTest {
 	ClientService clientService;
 
 	@Deployment
-	public static JavaArchive createDeployment() {
-		return ShrinkWrap.create(JavaArchive.class).addClass(ClientService.class)
-				.addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
+	public static Archive<?> createDeployment() {
+		return ShrinkWrap.create(WebArchive.class)
+				.addClass(ClientService.class);
 	}
 	
 	@Before
@@ -64,19 +64,19 @@ public class ClientServiceTest {
 	}
 
 	@Test
-	public void findClientByUser() {
+	public void findClientByAccount() {
 		Client client1 = new Client("id1", "device1", 0, 0, ClientType.SENDER, mock(Session.class));
 		Client client2 = new Client("id2", "device2", 0, 0, ClientType.SENDER, mock(Session.class));
-		User user1 = new User();
-		client1.setUser(user1);
-		client2.setUser(user1);
+		Account account1 = new Account();
+		client1.setAccount(account1);
+		client2.setAccount(account1);
 		clientService.getClients().add(client1);
 		clientService.getClients().add(client2);
 
-		Set<Client> clientsByUser = clientService.findClientsByUser(user1);
-		assertEquals(2, clientsByUser.size());
-		assertEquals(true, clientsByUser.contains(client1));
-		assertEquals(true, clientsByUser.contains(client2));
+		Set<Client> clientsByAccount = clientService.findClientsByAccount(account1);
+		assertEquals(2, clientsByAccount.size());
+		assertEquals(true, clientsByAccount.contains(client1));
+		assertEquals(true, clientsByAccount.contains(client2));
 	}
 
 	@Test

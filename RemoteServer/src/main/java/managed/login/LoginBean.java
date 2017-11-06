@@ -9,9 +9,9 @@ import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.ViewScoped;
 import javax.faces.component.UIComponent;
 
+import entity.Account;
 import managed.SessionBean;
-import model.User;
-import service.LoginService;
+import service.AccountService;
 import util.Constants;
 import util.FacesUtils;
 
@@ -25,13 +25,13 @@ public class LoginBean {
 	private UIComponent loginButton;
 	
 	@EJB
-	private LoginService loginService;
+	private AccountService accountService;
 	
 	@ManagedProperty(value = "#{sessionBean}")
 	private SessionBean sessionBean;
 
 	public void loginCheck() throws IOException {
-		User user = loginService.getUser(username, password);
+		Account user = accountService.getAccount(username, password);
 		if (user != null) {
 			sessionBean.setUser(user);;
 			FacesUtils.redirect(Constants.PAGE_DEVICES);
