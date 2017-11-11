@@ -39,7 +39,6 @@
 							<goal>exec</goal>
 						</goals>
 						<configuration>
-							<skip>${maven.exec.skip}</skip>
 							<executable>${basedir}/copyJAR.bat</executable>
 						</configuration>
 					</execution>
