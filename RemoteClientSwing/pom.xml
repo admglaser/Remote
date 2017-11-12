@@ -91,7 +91,19 @@
 			<version>2.12</version>
 			<optional>true</optional>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.3</version>
+		</dependency>
 
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>4.5.3</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>hu.bme.aut.dipterv</groupId>
 			<artifactId>remote-client-base</artifactId>

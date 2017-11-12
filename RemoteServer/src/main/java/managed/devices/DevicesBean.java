@@ -11,9 +11,9 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.ViewScoped;
 
+import entity.Account;
 import managed.SessionBean;
 import model.Client;
-import model.User;
 import service.ClientService;
 import util.Constants;
 import util.FacesUtils;
@@ -33,10 +33,9 @@ public class DevicesBean {
 	@PostConstruct
 	public void init() {
 		this.clients = new ArrayList<>();
-		User user = sessionBean.getUser();
+		Account user = sessionBean.getUser();
 		if (user != null) {
-			Set<Client> clients = clientService.findClientsByUser(user);
-			System.out.println(clients.size());
+			Set<Client> clients = clientService.findClientsByAccount(user);
 			this.clients.addAll(clients);
 		}
 	}
@@ -44,6 +43,11 @@ public class DevicesBean {
 	public void connect(Client client) throws IOException {
 		sessionBean.setClient(client);
 		FacesUtils.redirect(Constants.PAGE_VIEWER);
+	}
+	
+	public void browse(Client client) throws IOException {
+		sessionBean.setClient(client);
+		FacesUtils.redirect(Constants.PAGE_BROWSER);
 	}
 
 	public List<Client> getClients() {

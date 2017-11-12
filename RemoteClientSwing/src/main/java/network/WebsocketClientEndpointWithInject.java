@@ -21,6 +21,7 @@ public class WebsocketClientEndpointWithInject extends WebsocketClientEndpoint {
 
 	@Inject
 	ConnectionPresenter connectionPresenter;
+
 	
 	@Override
 	public void connect(String address) {

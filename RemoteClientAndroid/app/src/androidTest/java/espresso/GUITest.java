@@ -87,7 +87,7 @@ public class GUITest {
     }
 
     private void connectToServer() throws InterruptedException {
-        onView(withId(R.id.inputAddress)).perform(typeText("192.168.0.8")).perform(closeSoftKeyboard());
+        onView(withId(R.id.inputAddress)).perform(typeText("192.168.0.8:8080")).perform(closeSoftKeyboard());
         onView(withId(R.id.buttonConnect)).perform(click());
         Thread.sleep(1000);
         onView(withId(R.id.buttonConnect)).check(matches(withText("Disconnect")));

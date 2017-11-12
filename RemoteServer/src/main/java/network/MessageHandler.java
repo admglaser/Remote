@@ -6,19 +6,29 @@ import java.util.UUID;
 
 import javax.websocket.Session;
 
+import org.apache.log4j.Logger;
+
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 import entity.Account;
+import managed.browser.BrowserBean;
 import model.AnonymousAccess;
 import model.Client;
 import model.ClientType;
 import model.MessageWrapper;
-import model.message.Connect;
-import model.message.CreateAccountAccess;
-import model.message.CreateAnonymousAccess;
+import model.message.ConnectRequest;
+import model.message.ConnectResponse;
+import model.message.CreateAccountAccessRequest;
+import model.message.CreateAccountAccessResponse;
+import model.message.CreateAnonymousAccessRequest;
+import model.message.CreateAnonymousAccessResponse;
+import model.message.FileDownloadRequest;
+import model.message.FileDownloadResponse;
+import model.message.FileListRequest;
+import model.message.FileListResponse;
 import model.message.Identify;
 import model.message.Image;
 import model.message.KeyEvent;
@@ -28,22 +38,25 @@ import model.message.RemoveAccountAccess;
 import model.message.RemoveAnonymousAccess;
 import model.message.Start;
 import model.message.Stop;
-import model.message.VerifyConnect;
-import model.message.VerifyCreateAccountAccess;
-import model.message.VerifyCreateAnonymousAccess;
 import service.AccountService;
+import service.BrowserService;
 import service.ClientService;
 
 public class MessageHandler {
 
 	protected ClientService clientService;
 	protected AccountService accountService;
+	protected BrowserService browserService;
+	
 	protected Client client;
 	protected Session session;
+	
+	private Logger logger  = Logger.getLogger(MessageHandler.class);
 
-	public MessageHandler(ClientService clientService, AccountService accountService) {
+	public MessageHandler(ClientService clientService, AccountService accountService, BrowserService browserService) {
 		this.clientService = clientService;
 		this.accountService = accountService;
+		this.browserService = browserService;
 	}
 
 	public void handleMessage(String message, Session session) throws NoCommandException, IOException {
@@ -55,67 +68,79 @@ public class MessageHandler {
 		mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
 		MessageWrapper wrapper = mapper.readValue(message, MessageWrapper.class);
-
+		
 		Image image = wrapper.getImage();
 		if (image != null) {
-			parseImage(image);
+			handleImage(image);
 			return;
 		}
 
-		System.out.println("onMessage: " + message);
-
-		Connect connect = wrapper.getConnect();
-		if (connect != null) {
-			parseConnect(connect);
+		logger.info("message: " + message);
+		
+		ConnectRequest connectRequest = wrapper.getConnectRequest();
+		if (connectRequest != null) {
+			handleConnectRequest(connectRequest);
 			return;
 		}
 
 		Identify identify = wrapper.getIdentify();
 		if (identify != null) {
-			parseIdentify(identify);
+			handleIdentify(identify);
 			return;
 		}
 
-		CreateAccountAccess createAccountAccess = wrapper.getCreateAccountAccess();
-		if (createAccountAccess != null) {
-			parseCreateAccountAccess(createAccountAccess);
+		CreateAccountAccessRequest createAccountAccessRequest = wrapper.getCreateAccountAccessRequest();
+		if (createAccountAccessRequest != null) {
+			handleCreateAccountAccessRequest(createAccountAccessRequest);
 			return;
 		}
 
-		CreateAnonymousAccess createAnonymousAccess = wrapper.getCreateAnonymousAccess();
-		if (createAnonymousAccess != null) {
-			parseCreateAnonymousAccess(createAnonymousAccess);
+		CreateAnonymousAccessRequest createAnonymousAccessRequest = wrapper.getCreateAnonymousAccessRequest();
+		if (createAnonymousAccessRequest != null) {
+			handleCreateAnonymousAccess(createAnonymousAccessRequest);
 			return;
 		}
 
 		RemoveAccountAccess removeAccountAccess = wrapper.getRemoveAccountAccess();
 		if (removeAccountAccess != null) {
-			parseRemoveAccountAccess(removeAccountAccess);
+			handleRemoveAccountAccess(removeAccountAccess);
 			return;
 		}
 
 		RemoveAnonymousAccess removeAnonymousAccess = wrapper.getRemoveAnonymousAccess();
 		if (removeAnonymousAccess != null) {
-			parseRemoveAnonymousAccess(removeAnonymousAccess);
+			handleRemoveAnonymousAccess(removeAnonymousAccess);
 			return;
 		}
 
 		MouseClick mouseClick = wrapper.getMouseClick();
 		if (mouseClick != null) {
-			parseMouseClick(mouseClick);
+			handleMouseClick(mouseClick);
 			return;
 		}
 
 		KeyEvent keyEvent = wrapper.getKeyEvent();
 		if (keyEvent != null) {
-			parseKeyEvent(keyEvent);
+			handleKeyEvent(keyEvent);
 			return;
 		}
 
+		FileListResponse fileListResponse = wrapper.getFileListResponse();
+		if (fileListResponse != null) {
+			handleFileListResponse(fileListResponse);
+			return;
+		}
+		
+		FileDownloadResponse fileDownloadResponse = wrapper.getFileDownloadResponse();
+		if (fileDownloadResponse != null) {
+			handleFileDownloadResponse(fileDownloadResponse);
+			return;
+		}
+		
 		throw new NoCommandException();
 	}
 
-	private void parseIdentify(Identify identify) {
+	private void handleIdentify(Identify identify) {
 		String id = UUID.randomUUID().toString();
 		String deviceName = identify.getDeviceName();
 		int deviceWidth = identify.getDeviceWidth();
@@ -123,28 +148,24 @@ public class MessageHandler {
 		String type = identify.getType();
 		client = new Client(id, deviceName, deviceWidth, deviceHeight, ClientType.fromString(type), session);
 		clientService.getClients().add(client);
-	
-		System.out.println("clients: " + clientService.getClients().size());
 	}
 
-	private void parseCreateAccountAccess(CreateAccountAccess createAccountAccess) {
-		String username = createAccountAccess.getUsername();
-		String password = createAccountAccess.getPassword();
+	private void handleCreateAccountAccessRequest(CreateAccountAccessRequest createAccountAccessRequest) {
+		String username = createAccountAccessRequest.getUsername();
+		String password = createAccountAccessRequest.getPassword();
 	
 		Account user = accountService.getAccount(username, password);
 		if (user == null) {
-			sendVerifyCreateAccountAccess(client, false);
+			sendCreateAccountAccessResponse(client, false);
 		} else {
-			sendVerifyCreateAccountAccess(client, true);
+			sendCreateAccountAccessResponse(client, true);
 			client.setAccount(user);
 		}
-	
-		System.out.println("clients: " + clientService.getClients().size());
 	}
 
-	private void parseCreateAnonymousAccess(CreateAnonymousAccess createAnonymousAccess) {
-		String numericId = createAnonymousAccess.getNumericId();
-		String numericPassword = createAnonymousAccess.getNumericPassword();
+	private void handleCreateAnonymousAccess(CreateAnonymousAccessRequest createAnonymousAccessRequest) {
+		String numericId = createAnonymousAccessRequest.getNumericId();
+		String numericPassword = createAnonymousAccessRequest.getNumericPassword();
 		AnonymousAccess anonymousAccess = new AnonymousAccess(numericId, numericPassword);
 		if (clientService.isAccessUnique(anonymousAccess)) {
 			sendVerifyCreateAnonymousAccess(client, true);
@@ -152,24 +173,18 @@ public class MessageHandler {
 		} else {
 			sendVerifyCreateAnonymousAccess(client, false);
 		}
-	
-		System.out.println("clients: " + clientService.getClients().size());
 	}
 
-	private void parseRemoveAccountAccess(RemoveAccountAccess removeAccountAccess) {
+	private void handleRemoveAccountAccess(RemoveAccountAccess removeAccountAccess) {
 		client.setAccount(null);
-	
-		System.out.println("clients: " + clientService.getClients().size());
 	}
 
-	private void parseRemoveAnonymousAccess(RemoveAnonymousAccess removeAnonymousAccess) {
+	private void handleRemoveAnonymousAccess(RemoveAnonymousAccess removeAnonymousAccess) {
 		client.setAnonymousAccess(null);
-	
-		System.out.println("clients: " + clientService.getClients().size());
 	}
 
-	private void parseConnect(Connect connect) {
-		String senderId = connect.getId();
+	private void handleConnectRequest(ConnectRequest connectRequest) {
+		String senderId = connectRequest.getId();
 		Client senderClient = clientService.findClientById(senderId);
 		boolean sendStartToSender = false;
 		if (senderClient.getReceivers().size() == 0) {
@@ -180,25 +195,38 @@ public class MessageHandler {
 		if (sendStartToSender) {
 			sendStart(senderClient);
 		}
-		sendVerifyConnect(client);
-	
-		System.out.println("clients: " + clientService.getClients().size());
+		sendConnectResponse(client);
 	}
 
-	private void parseImage(Image image) {
+	private void handleImage(Image image) {
 		for (Client receiver : client.getReceivers()) {
 			sendImage(receiver, image);
 		}
 	}
 
-	private void parseMouseClick(MouseClick mouseClick) {
+	private void handleMouseClick(MouseClick mouseClick) {
 		Client sender = client.getSender();
 		sendMouseClick(sender, mouseClick);
 	}
 	
-	private void parseKeyEvent(KeyEvent keyEvent) {
+	private void handleKeyEvent(KeyEvent keyEvent) {
 		Client sender = client.getSender();
 		sendKeyEvent(sender, keyEvent);
+	}
+
+	private void handleFileListResponse(FileListResponse fileListResponse) {
+		BrowserBean browserBean = browserService.getBrowserBeanById(fileListResponse.getId());
+		browserBean.setPath(fileListResponse.getPath());
+		browserBean.setParentPath(fileListResponse.getParentPath());
+		browserBean.setFiles(fileListResponse.getFileInfos());
+		browserBean.responseArrived();
+	}
+	
+	private void handleFileDownloadResponse(FileDownloadResponse fileDownloadResponse) {
+		BrowserBean browserBean = browserService.getBrowserBeanById(fileDownloadResponse.getId());
+		browserBean.setResponseDownloadLink(fileDownloadResponse.getLink());
+		browserBean.setResponseErrorMessage(fileDownloadResponse.getErrorMessage());
+		browserBean.responseArrived();
 	}
 
 	public void sendNotify(Client client) {
@@ -212,6 +240,25 @@ public class MessageHandler {
 		Stop stop = new Stop();
 		MessageWrapper wrapper = new MessageWrapper();
 		wrapper.setStop(stop);
+		send(client, wrapper);
+	}
+	
+	public void sendFileListRequest(Client client, String id, String path) {
+		MessageWrapper wrapper = new MessageWrapper();
+		FileListRequest fileListRequest = new FileListRequest();
+		fileListRequest.setId(id);
+		fileListRequest.setPath(path);
+		wrapper.setFileListRequest(fileListRequest);
+		send(client, wrapper);
+	}
+	
+	public void sendFileDownloadRequest(Client client, String id, String path, String name) {
+		MessageWrapper wrapper = new MessageWrapper();
+		FileDownloadRequest fileDownloadRequest = new FileDownloadRequest();
+		fileDownloadRequest.setId(id);
+		fileDownloadRequest.setPath(path);
+		fileDownloadRequest.setName(name);
+		wrapper.setFileDownloadRequest(fileDownloadRequest);
 		send(client, wrapper);
 	}
 
@@ -229,8 +276,6 @@ public class MessageHandler {
 				}
 			}
 		}
-
-		System.out.println("clients: " + clientService.getClients().size());
 	}
 
 	private void sendStart(Client client) {
@@ -258,31 +303,31 @@ public class MessageHandler {
 		send(client, wrapper);
 	}
 
-	private void sendVerifyCreateAccountAccess(Client client, boolean success) {
-		VerifyCreateAccountAccess verifyCreateAccountAccess = new VerifyCreateAccountAccess();
-		verifyCreateAccountAccess.setSuccess(success);
+	private void sendCreateAccountAccessResponse(Client client, boolean success) {
+		CreateAccountAccessResponse createAccountAccessResponse = new CreateAccountAccessResponse();
+		createAccountAccessResponse.setSuccess(success);
 		MessageWrapper wrapper = new MessageWrapper();
-		wrapper.setVerifyCreateAccountAccess(verifyCreateAccountAccess);
+		wrapper.setCreateAccountAccessResponse(createAccountAccessResponse);
 		send(client, wrapper);
 	}
 
 	private void sendVerifyCreateAnonymousAccess(Client client, boolean success) {
-		VerifyCreateAnonymousAccess verifyCreateAnonymousAccess = new VerifyCreateAnonymousAccess();
-		verifyCreateAnonymousAccess.setSuccess(success);
+		CreateAnonymousAccessResponse createAnonymousAccessResponse = new CreateAnonymousAccessResponse();
+		createAnonymousAccessResponse.setSuccess(success);
 		MessageWrapper wrapper = new MessageWrapper();
-		wrapper.setVerifyCreateAnonymousAccess(verifyCreateAnonymousAccess);
+		wrapper.setCreateAnonymousAccessResponse(createAnonymousAccessResponse);
 		send(client, wrapper);
 	}
 
-	private void sendVerifyConnect(Client client) {
-		VerifyConnect verifyConnect = new VerifyConnect();
-		verifyConnect.setSuccess(true);
+	private void sendConnectResponse(Client client) {
+		ConnectResponse connectResponse = new ConnectResponse();
+		connectResponse.setSuccess(true);
 		MessageWrapper wrapper = new MessageWrapper();
-		wrapper.setVerifyConnect(verifyConnect);
+		wrapper.setConnectResponse(connectResponse);
 		send(client, wrapper);
 	}
 
-	public void send(Client client, MessageWrapper wrapper) {
+	private void send(Client client, MessageWrapper wrapper) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			mapper.setSerializationInclusion(Include.NON_NULL);

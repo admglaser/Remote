@@ -23,32 +23,25 @@
 				<h:form>
 					<div class="collapse navbar-collapse"
 						id="bs-example-navbar-collapse-1">
-						<ul class="nav navbar-nav">
-							<li><a href="connect">Connect</a></li>
-							<c:if test="#{not empty sessionBean.user}">
-								<li><a href="devices">Devices</a></li>
-							</c:if>
-						</ul>
 						<ul class="nav navbar-nav pull-right">
-							<c:if test="#{not empty sessionBean.user}">
-								<c:if test="#{sessionBean.user.admin}">
-									<li><a href="clients">Clients</a></li>
-								</c:if>
-							</c:if>
 							<c:if test="#{empty sessionBean.user}">
 								<li><a href="login">Login</a></li>
 								<li><a href="register">Register</a></li>
 							</c:if>
 							<c:if test="#{not empty sessionBean.user}">
 								<li class="dropdown"><a class="dropdown-toggle"
-									data-toggle="dropdown" href="#"> Logged in as #{sessionBean.user.username}<span
-										class="caret"></span>
+									data-toggle="dropdown" href="#"> Logged in as
+										#{sessionBean.user.username}<span class="caret"></span>
 								</a>
 									<ul class="dropdown-menu">
 										<li><a href="account">Account</a></li>
+										<c:if test="#{not empty sessionBean.user}">
+											<c:if test="#{sessionBean.user.admin}">
+												<li><a href="clients">Clients</a></li>
+											</c:if>
+										</c:if>
 										<li role="separator" class="divider"></li>
-										<li><h:commandLink action="#{sessionBean.logout()}"
-												value="Logout" /></li>
+										<li><h:commandLink action="#{sessionBean.logout()}" value="Logout" /></li>
 									</ul></li>
 							</c:if>
 						</ul>

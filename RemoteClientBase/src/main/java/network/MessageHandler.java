@@ -1,6 +1,10 @@
 package network;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,11 +12,18 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import application.Application;
 import capture.Capturer;
+import model.FileInfo;
 import model.ImagePiece;
 import model.MessageWrapper;
 import model.Rectangle;
-import model.message.CreateAccountAccess;
-import model.message.CreateAnonymousAccess;
+import model.message.CreateAccountAccessRequest;
+import model.message.CreateAccountAccessResponse;
+import model.message.CreateAnonymousAccessRequest;
+import model.message.CreateAnonymousAccessResponse;
+import model.message.FileDownloadRequest;
+import model.message.FileDownloadResponse;
+import model.message.FileListRequest;
+import model.message.FileListResponse;
 import model.message.Identify;
 import model.message.Image;
 import model.message.KeyEvent;
@@ -21,8 +32,6 @@ import model.message.RemoveAccountAccess;
 import model.message.RemoveAnonymousAccess;
 import model.message.Start;
 import model.message.Stop;
-import model.message.VerifyCreateAccountAccess;
-import model.message.VerifyCreateAnonymousAccess;
 import ui.access.AccessPresenter;
 import ui.connection.ConnectionPresenter;
 
@@ -32,14 +41,18 @@ public class MessageHandler {
 
 	Application application;
 
+	ServerConnection serverConnection;
+	
 	Capturer capturer;
 
 	AccessPresenter accessPresenter;
 
 	ConnectionPresenter connectionPresenter;
-
+	
 	protected Session session;
 
+	private Logger logger = Logger.getLogger(MessageHandler.class);
+	
 	public MessageHandler(Session session) {
 		this.session = session;
 	}
@@ -53,47 +66,59 @@ public class MessageHandler {
 
 		MessageWrapper wrapper = mapper.readValue(message, MessageWrapper.class);
 
-		VerifyCreateAccountAccess verifyCreateAccountAccess = wrapper.getVerifyCreateAccountAccess();
-		if (verifyCreateAccountAccess != null) {
-			parseVerifyCreateAccountAccess(verifyCreateAccountAccess);
+		CreateAccountAccessResponse createAccountAccessResponse = wrapper.getCreateAccountAccessResponse();
+		if (createAccountAccessResponse != null) {
+			handleCreateAccountAccessResponse(createAccountAccessResponse);
 			return;
 		}
 
-		VerifyCreateAnonymousAccess verifyCreateAnonymousAccess = wrapper.getVerifyCreateAnonymousAccess();
-		if (verifyCreateAnonymousAccess != null) {
-			parseVerifyCreateAnonymousAccess(verifyCreateAnonymousAccess);
+		CreateAnonymousAccessResponse createAnonymousAccessResponse = wrapper.getCreateAnonymousAccessResponse();
+		if (createAnonymousAccessResponse != null) {
+			handleCreateAnonymousAccessResponse(createAnonymousAccessResponse);
 			return;
 		}
 
 		Start start = wrapper.getStart();
 		if (start != null) {
-			parseStart(start);
+			handleStart(start);
 			return;
 		}
 
 		Stop stop = wrapper.getStop();
 		if (stop != null) {
-			parseStop(stop);
+			handleStop(stop);
 			return;
 		}
 
 		MouseClick mouseClick = wrapper.getMouseClick();
 		if (mouseClick != null) {
-			parseMouseClick(mouseClick);
+			handleMouseClick(mouseClick);
 			return;
 		}
 
 		KeyEvent keyEvent = wrapper.getKeyEvent();
 		if (keyEvent != null) {
-			parseKeyEvent(keyEvent);
+			handleKeyEvent(keyEvent);
+			return;
+		}
+		
+		FileListRequest fileListRequest = wrapper.getFileListRequest();
+		if (fileListRequest != null) {
+			handleFileListRequest(fileListRequest);
+			return;
+		}
+		
+		FileDownloadRequest fileDownloadRequest = wrapper.getFileDownloadRequest();
+		if (fileDownloadRequest != null) {
+			handleFileDownloadRequest(fileDownloadRequest);
 			return;
 		}
 
 		throw new NoCommandException();
 	}
 
-	private void parseVerifyCreateAccountAccess(VerifyCreateAccountAccess verifyCreateAccountAccess) {
-		boolean success = verifyCreateAccountAccess.isSuccess();
+	private void handleCreateAccountAccessResponse(CreateAccountAccessResponse createAccountAccessResponse) {
+		boolean success = createAccountAccessResponse.isSuccess();
 		if (success) {
 			accessPresenter.accountConnected();
 		} else {
@@ -101,8 +126,8 @@ public class MessageHandler {
 		}
 	}
 
-	private void parseVerifyCreateAnonymousAccess(VerifyCreateAnonymousAccess verifyCreateAnonymousAccess) {
-		boolean success = verifyCreateAnonymousAccess.isSuccess();
+	private void handleCreateAnonymousAccessResponse(CreateAnonymousAccessResponse createAnonymousAccessResponse) {
+		boolean success = createAnonymousAccessResponse.isSuccess();
 		if (success) {
 			accessPresenter.anonymousConnected();
 		} else {
@@ -110,20 +135,39 @@ public class MessageHandler {
 		}
 	}
 
-	private void parseStart(Start start) {
+	private void handleStart(Start start) {
 		capturer.startCapture();
 	}
 
-	private void parseStop(Stop stop) {
+	private void handleStop(Stop stop) {
 		capturer.stopCapture();
 	}
 
-	private void parseMouseClick(MouseClick mouseClick) {
+	private void handleMouseClick(MouseClick mouseClick) {
 		application.mouseClick(mouseClick);
 	}
 
-	private void parseKeyEvent(KeyEvent keyEvent) {
+	private void handleKeyEvent(KeyEvent keyEvent) {
 		application.keyEvent(keyEvent);
+	}
+
+	private void handleFileListRequest(FileListRequest fileListRequest) {
+		String parentPath = application.getParentPath(fileListRequest.getPath());
+		List<FileInfo> fileInfos = application.listFileInfos(fileListRequest.getPath());
+		sendFileListResponse(fileListRequest.getId(), fileListRequest.getPath(), parentPath, fileInfos);
+	}
+	
+	private void handleFileDownloadRequest(FileDownloadRequest fileDownloadRequest) {
+		String link = null;
+		try {
+			String url = "http://" + serverConnection.getAddress() + "/remote/upload/";
+			File file = application.getFile(fileDownloadRequest.getPath(), fileDownloadRequest.getName());
+			link = application.uploadFile(url, file);
+			sendFileDownloadResponse(fileDownloadRequest.getId(), fileDownloadRequest.getPath(), fileDownloadRequest.getName(), link, null);
+		} catch (IOException e) {
+			logger.error("Failed to upload file: " + e.getMessage());
+			sendFileDownloadResponse(fileDownloadRequest.getId(), fileDownloadRequest.getPath(), fileDownloadRequest.getName(), link, e.getMessage());
+		}
 	}
 
 	public void sendIndentify() {
@@ -137,21 +181,21 @@ public class MessageHandler {
 		send(wrapper);
 	}
 
-	public void sendCreateAccountAccess(String username, String password) {
-		CreateAccountAccess createAccountAccess = new CreateAccountAccess();
-		createAccountAccess.setUsername(username);
-		createAccountAccess.setPassword(password);
+	public void sendCreateAccountAccessRequest(String username, String password) {
+		CreateAccountAccessRequest createAccountAccessRequest = new CreateAccountAccessRequest();
+		createAccountAccessRequest.setUsername(username);
+		createAccountAccessRequest.setPassword(password);
 		MessageWrapper wrapper = new MessageWrapper();
-		wrapper.setCreateAccountAccess(createAccountAccess);
+		wrapper.setCreateAccountAccessRequest(createAccountAccessRequest);
 		send(wrapper);
 	}
 
-	public void sendCreateAnonymousAccess(String numericId, String numericPassword) {
-		CreateAnonymousAccess createAnonymousAccess = new CreateAnonymousAccess();
+	public void sendCreateAnonymousAccessRequest(String numericId, String numericPassword) {
+		CreateAnonymousAccessRequest createAnonymousAccess = new CreateAnonymousAccessRequest();
 		createAnonymousAccess.setNumericId(numericId);
 		createAnonymousAccess.setNumericPassword(numericPassword);
 		MessageWrapper wrapper = new MessageWrapper();
-		wrapper.setCreateAnonymousAccess(createAnonymousAccess);
+		wrapper.setCreateAnonymousAccessRequest(createAnonymousAccess);
 		send(wrapper);
 	}
 
@@ -183,6 +227,27 @@ public class MessageHandler {
 		send(wrapper);
 	}
 
+	private void sendFileListResponse(String id, String path, String parentPath, List<FileInfo> fileInfos) {
+		MessageWrapper wrapper = new MessageWrapper();
+		FileListResponse fileListResponse = new FileListResponse();
+		fileListResponse.setId(id);
+		fileListResponse.setPath(path);
+		fileListResponse.setParentPath(parentPath);
+		fileListResponse.setFileInfos(fileInfos);
+		wrapper.setFileListResponse(fileListResponse);
+		send(wrapper);
+	}
+
+	private void sendFileDownloadResponse(String id, String path, String name, String link, String errorMessage) {
+		MessageWrapper wrapper = new MessageWrapper();
+		FileDownloadResponse fileDownloadResponse = new FileDownloadResponse();
+		fileDownloadResponse.setId(id);
+		fileDownloadResponse.setLink(link);
+		fileDownloadResponse.setErrorMessage(errorMessage);
+		wrapper.setFileDownloadResponse(fileDownloadResponse);
+		send(wrapper);
+	}
+
 	private void send(MessageWrapper wrapper) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
@@ -192,7 +257,7 @@ public class MessageHandler {
 			session.send(string);
 			connectionPresenter.messageSent();
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Failed to send message: " + e.getMessage());
 		}
 	}
 

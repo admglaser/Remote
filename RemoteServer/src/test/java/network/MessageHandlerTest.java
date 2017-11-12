@@ -24,9 +24,12 @@ import model.AnonymousAccess;
 import model.Client;
 import model.ClientType;
 import model.MessageWrapper;
-import model.message.Connect;
-import model.message.CreateAccountAccess;
-import model.message.CreateAnonymousAccess;
+import model.message.ConnectRequest;
+import model.message.ConnectResponse;
+import model.message.CreateAccountAccessRequest;
+import model.message.CreateAccountAccessResponse;
+import model.message.CreateAnonymousAccessRequest;
+import model.message.CreateAnonymousAccessResponse;
 import model.message.Identify;
 import model.message.Image;
 import model.message.KeyEvent;
@@ -36,11 +39,9 @@ import model.message.RemoveAccountAccess;
 import model.message.RemoveAnonymousAccess;
 import model.message.Start;
 import model.message.Stop;
-import model.message.VerifyConnect;
-import model.message.VerifyCreateAccountAccess;
-import model.message.VerifyCreateAnonymousAccess;
-import service.ClientService;
 import service.AccountService;
+import service.BrowserService;
+import service.ClientService;
 
 public class MessageHandlerTest {
 
@@ -55,14 +56,14 @@ private ObjectMapper mapper;
 
 	@Test(expected=NoCommandException.class)
 	public void expectNoCommandException() throws Exception {
-		MessageHandler messageHandler = new MessageHandler(mock(ClientService.class), mock(AccountService.class));
+		MessageHandler messageHandler = new MessageHandler(mock(ClientService.class), mock(AccountService.class), mock(BrowserService.class));
 
 		messageHandler.handleMessage(getNoCommandMessage(), mock(Session.class));
 	}
 	
 	@Test(expected=JsonParseException.class)
 	public void expectIOException() throws Exception {
-		MessageHandler messageHandler = new MessageHandler(mock(ClientService.class), mock(AccountService.class));
+		MessageHandler messageHandler = new MessageHandler(mock(ClientService.class), mock(AccountService.class), mock(BrowserService.class));
 
 		messageHandler.handleMessage(getUnparsableJsonMessage(), mock(Session.class));
 	}
@@ -71,7 +72,7 @@ private ObjectMapper mapper;
 	public void handleIdentify() throws Exception {
 		Client client = getClient();
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class), mock(BrowserService.class));
 		
 		when(clientService.getClients()).thenReturn(new HashSet<Client>());
 		
@@ -85,28 +86,28 @@ private ObjectMapper mapper;
 	}
 
 	@Test
-	public void handleCreateAccountAccess() throws Exception {
+	public void handleCreateAccountAccessRequest() throws Exception {
 		Client client = getClient();
 		ClientService clientService = mock(ClientService.class);
-		AccountService AccountService = mock(AccountService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, AccountService);
+		AccountService accountService = mock(AccountService.class);
+		MessageHandler messageHandler = new MessageHandler(clientService, accountService, mock(BrowserService.class));
 		String username = "username";
 		String password = "password";
 		
 		when(clientService.findClientBySession(client.getSession())).thenReturn(client);
 		when(client.getSession().getAsyncRemote()).thenReturn(mock(Async.class));
-		when(AccountService.getAccount(username, password)).thenReturn(new Account());
+		when(accountService.getAccount(username, password)).thenReturn(new Account());
 		
-		messageHandler.handleMessage(getCreateAccountAccessMessage(username, password), client.getSession());
+		messageHandler.handleMessage(getCreateAccountAccessRequestMessage(username, password), client.getSession());
 		
-		verify(client.getSession().getAsyncRemote()).sendText(getVerifyCreateAccountAccessMessage());
+		verify(client.getSession().getAsyncRemote()).sendText(getCreateAccountAccessResponseMessage());
 	}
 	
 	@Test
-	public void handleCreateAnonymousAccess() throws Exception {
+	public void handleCreateAnonymousAccessRequest() throws Exception {
 		Client client = getClient();
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class), mock(BrowserService.class));
 		String id = "123456789";
 		String password = "1234";
 		AnonymousAccess anonymousAccess = new AnonymousAccess(id, password);
@@ -115,9 +116,9 @@ private ObjectMapper mapper;
 		when(clientService.isAccessUnique(anonymousAccess)).thenReturn(true);
 		when(client.getSession().getAsyncRemote()).thenReturn(mock(Async.class));
 		
-		messageHandler.handleMessage(getCreateAnonymousAccess(id, password), client.getSession());
+		messageHandler.handleMessage(getCreateAnonymousRequestAccess(id, password), client.getSession());
 		
-		verify(client.getSession().getAsyncRemote()).sendText(getVerifyCreateAnonymousAccessMessage());
+		verify(client.getSession().getAsyncRemote()).sendText(getCreateAnonymousAccessResponseMessage());
 	}
 
 	@Test
@@ -125,10 +126,10 @@ private ObjectMapper mapper;
 		Client client = getClient();
 		client.setAccount(new Account());
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class), mock(BrowserService.class));
 		
 		when(clientService.findClientBySession(client.getSession())).thenReturn(client);
-		messageHandler.handleMessage(getRemoveAccountsAccess(), client.getSession());
+		messageHandler.handleMessage(getRemoveAccountsAccessMessage(), client.getSession());
 		
 		assertEquals(null, client.getAccount());
 	}
@@ -138,32 +139,32 @@ private ObjectMapper mapper;
 		Client client = getClient();
 		client.setAnonymousAccess(new AnonymousAccess("123456789", "1234"));
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class), mock(BrowserService.class));
 		
 		when(clientService.findClientBySession(client.getSession())).thenReturn(client);
-		messageHandler.handleMessage(getRemoveAnonymousAccess(), client.getSession());
+		messageHandler.handleMessage(getRemoveAnonymousAccessMessage(), client.getSession());
 		
 		assertEquals(null, client.getAnonymousAccess());
 	}
 
 	@Test
-	public void handleConnect() throws Exception {
+	public void handleConnectRequest() throws Exception {
 		Client receiver = new Client("id1", null, 0, 0, ClientType.RECEIVER, mock(Session.class));
 		Client sender = new Client("id2", "device", 100, 100, ClientType.SENDER, mock(Session.class));
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class), mock(BrowserService.class));
 		
 		when(clientService.findClientBySession(receiver.getSession())).thenReturn(receiver);
 		when(clientService.findClientById(sender.getId())).thenReturn(sender);
 		when(sender.getSession().getAsyncRemote()).thenReturn(mock(Async.class));
 		when(receiver.getSession().getAsyncRemote()).thenReturn(mock(Async.class));
 		
-		messageHandler.handleMessage(getConnectMessage(sender.getId()), receiver.getSession());
+		messageHandler.handleMessage(getConnectRequestMessage(sender.getId()), receiver.getSession());
 		
 		assertEquals(1, sender.getReceivers().size());
 		assertEquals(receiver, sender.getReceivers().iterator().next());
 		verify(sender.getSession().getAsyncRemote()).sendText(getStartMessage());
-		verify(receiver.getSession().getAsyncRemote()).sendText(getVerifyConnectMessage());
+		verify(receiver.getSession().getAsyncRemote()).sendText(getConnectResponseMessage());
 	}
 
 	@Test
@@ -174,7 +175,7 @@ private ObjectMapper mapper;
 		sender.getReceivers().add(receiver1);
 		sender.getReceivers().add(receiver2);
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class), mock(BrowserService.class));
 		
 		when(clientService.findClientBySession(sender.getSession())).thenReturn(sender);
 		when(receiver1.getSession().getAsyncRemote()).thenReturn(mock(Async.class));
@@ -192,7 +193,7 @@ private ObjectMapper mapper;
 		Client sender = new Client("id2", "device", 100, 100, ClientType.SENDER, mock(Session.class));
 		receiver.setSender(sender);
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class), mock(BrowserService.class));
 		
 		when(clientService.findClientBySession(receiver.getSession())).thenReturn(receiver);
 		when(sender.getSession().getAsyncRemote()).thenReturn(mock(Async.class));
@@ -208,7 +209,7 @@ private ObjectMapper mapper;
 		Client sender = new Client("id2", "device", 100, 100, ClientType.SENDER, mock(Session.class));
 		receiver.setSender(sender);
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class), mock(BrowserService.class));
 		
 		when(clientService.findClientBySession(receiver.getSession())).thenReturn(receiver);
 		when(sender.getSession().getAsyncRemote()).thenReturn(mock(Async.class));
@@ -225,7 +226,7 @@ private ObjectMapper mapper;
 		receiver.setSender(sender);
 		sender.getReceivers().add(receiver);
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class), mock(BrowserService.class));
 		
 		when(clientService.removeSenderAndReturnReceiversToNotify(sender)).thenReturn(sender.getReceivers());
 		when(receiver.getSession().getAsyncRemote()).thenReturn(mock(Async.class));
@@ -242,7 +243,7 @@ private ObjectMapper mapper;
 		receiver.setSender(sender);
 		sender.getReceivers().add(receiver);
 		ClientService clientService = mock(ClientService.class);
-		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class));
+		MessageHandler messageHandler = new MessageHandler(clientService, mock(AccountService.class), mock(BrowserService.class));
 		
 		when(clientService.removeReceiverAndReturnSenderToStopIfLastReceiver(receiver)).thenReturn(receiver.getSender());
 		when(sender.getSession().getAsyncRemote()).thenReturn(mock(Async.class));
@@ -286,65 +287,65 @@ private ObjectMapper mapper;
 		return mapper.writeValueAsString(wrapper);
 	}
 
-	private String getCreateAccountAccessMessage(String username, String password) throws JsonProcessingException {
+	private String getCreateAccountAccessRequestMessage(String username, String password) throws JsonProcessingException {
 		MessageWrapper wrapper = new MessageWrapper();
-		CreateAccountAccess createAccountAccess = new CreateAccountAccess();
-		createAccountAccess.setUsername(username);
-		createAccountAccess.setPassword(password);
-		wrapper.setCreateAccountAccess(createAccountAccess);
+		CreateAccountAccessRequest createAccountAccessRequest = new CreateAccountAccessRequest();
+		createAccountAccessRequest.setUsername(username);
+		createAccountAccessRequest.setPassword(password);
+		wrapper.setCreateAccountAccessRequest(createAccountAccessRequest);
 		return mapper.writeValueAsString(wrapper);
 	}
 	
-	private String getCreateAnonymousAccess(String id, String password) throws JsonProcessingException {
+	private String getCreateAnonymousRequestAccess(String id, String password) throws JsonProcessingException {
 		MessageWrapper wrapper = new MessageWrapper();
-		CreateAnonymousAccess createAnonymousAccess = new CreateAnonymousAccess();
-		createAnonymousAccess.setNumericId(id);
-		createAnonymousAccess.setNumericPassword(password);
-		wrapper.setCreateAnonymousAccess(createAnonymousAccess);
+		CreateAnonymousAccessRequest createAnonymousAccessRequest = new CreateAnonymousAccessRequest();
+		createAnonymousAccessRequest.setNumericId(id);
+		createAnonymousAccessRequest.setNumericPassword(password);
+		wrapper.setCreateAnonymousAccessRequest(createAnonymousAccessRequest);
 		return mapper.writeValueAsString(wrapper);
 	}
 
-	private String getVerifyCreateAccountAccessMessage() throws JsonProcessingException {
+	private String getCreateAccountAccessResponseMessage() throws JsonProcessingException {
 		MessageWrapper wrapper = new MessageWrapper();
-		VerifyCreateAccountAccess verifyCreateAccountAccess = new VerifyCreateAccountAccess();
-		verifyCreateAccountAccess.setSuccess(true);
-		wrapper.setVerifyCreateAccountAccess(verifyCreateAccountAccess);
+		CreateAccountAccessResponse createAccountAccessResponse = new CreateAccountAccessResponse();
+		createAccountAccessResponse.setSuccess(true);
+		wrapper.setCreateAccountAccessResponse(createAccountAccessResponse);
 		return mapper.writeValueAsString(wrapper);
 	}
 
-	private String getVerifyCreateAnonymousAccessMessage() throws JsonProcessingException {
+	private String getCreateAnonymousAccessResponseMessage() throws JsonProcessingException {
 		MessageWrapper wrapper = new MessageWrapper();
-		VerifyCreateAnonymousAccess verifyCreateAnonymousAccess = new VerifyCreateAnonymousAccess();
-		verifyCreateAnonymousAccess.setSuccess(true);
-		wrapper.setVerifyCreateAnonymousAccess(verifyCreateAnonymousAccess);
+		CreateAnonymousAccessResponse createAnonymousAccessResponse= new CreateAnonymousAccessResponse();
+		createAnonymousAccessResponse.setSuccess(true);
+		wrapper.setCreateAnonymousAccessResponse(createAnonymousAccessResponse);
 		return mapper.writeValueAsString(wrapper);
 	}
 
-	private String getRemoveAccountsAccess() throws JsonProcessingException {
+	private String getRemoveAccountsAccessMessage() throws JsonProcessingException {
 		MessageWrapper wrapper = new MessageWrapper();
 		wrapper.setRemoveAccountAccess(new RemoveAccountAccess());
 		return mapper.writeValueAsString(wrapper);
 	}
 
-	private String getRemoveAnonymousAccess() throws JsonProcessingException {
+	private String getRemoveAnonymousAccessMessage() throws JsonProcessingException {
 		MessageWrapper wrapper = new MessageWrapper();
 		wrapper.setRemoveAnonymousAccess(new RemoveAnonymousAccess());
 		return mapper.writeValueAsString(wrapper);
 	}
 
-	private String getConnectMessage(String id) throws JsonProcessingException {
+	private String getConnectRequestMessage(String id) throws JsonProcessingException {
 		MessageWrapper wrapper = new MessageWrapper();
-		Connect connect = new Connect();
-		connect.setId(id);
-		wrapper.setConnect(connect);
+		ConnectRequest connectRequest = new ConnectRequest();
+		connectRequest.setId(id);
+		wrapper.setConnectRequest(connectRequest);
 		return mapper.writeValueAsString(wrapper);
 	}
 
-	private String getVerifyConnectMessage() throws JsonProcessingException {
+	private String getConnectResponseMessage() throws JsonProcessingException {
 		MessageWrapper wrapper = new MessageWrapper();
-		VerifyConnect verifyConnect = new VerifyConnect();
-		verifyConnect.setSuccess(true);
-		wrapper.setVerifyConnect(verifyConnect);
+		ConnectResponse connectResponse = new ConnectResponse();
+		connectResponse.setSuccess(true);
+		wrapper.setConnectResponse(connectResponse);
 		return mapper.writeValueAsString(wrapper);
 	}
 

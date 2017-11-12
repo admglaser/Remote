@@ -181,7 +181,7 @@ function sendIdentify() {
 
 function sendConnect() {
 	var json = {
-		"connect" : {
+		"connectRequest" : {
 			"id" : sessionId
 		}
 	};

@@ -15,15 +15,31 @@ import java.awt.TrayIcon.MessageType;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
+import org.apache.log4j.Logger;
+
+import model.FileInfo;
 import model.message.KeyEvent;
 import model.message.MouseClick;
 import ui.access.AccessPanel;
@@ -35,6 +51,8 @@ public class SwingApplication extends JFrame implements Application {
 	private TrayIcon trayIcon;
 	private Image image;
 
+	private Logger logger = Logger.getLogger(SwingApplication.class);
+
 	public SwingApplication() {
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		readImage();
@@ -44,9 +62,9 @@ public class SwingApplication extends JFrame implements Application {
 
 	private void readImage() {
 		try {
-			image = ImageIO.read(getClass().getClassLoader().getResourceAsStream("tray.png"));
+			image = ImageIO.read(getClass().getClassLoader().getResourceAsStream("icon.png"));
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e);
 		}
 	}
 
@@ -92,8 +110,8 @@ public class SwingApplication extends JFrame implements Application {
 			});
 			try {
 				tray.add(trayIcon);
-			} catch (AWTException e1) {
-				e1.printStackTrace();
+			} catch (AWTException e) {
+				logger.error(e);
 			}
 		}
 	}
@@ -137,7 +155,7 @@ public class SwingApplication extends JFrame implements Application {
 				robot.mouseRelease(mask);
 			}
 		} catch (AWTException e) {
-			e.printStackTrace();
+			logger.error(e);
 		}
 	}
 
@@ -156,7 +174,7 @@ public class SwingApplication extends JFrame implements Application {
 				break;
 			}
 		} catch (AWTException e) {
-			e.printStackTrace();
+			logger.error(e);
 		}
 	}
 
@@ -178,9 +196,86 @@ public class SwingApplication extends JFrame implements Application {
 			InetAddress localMachine = InetAddress.getLocalHost();
 			return localMachine.getHostName();
 		} catch (UnknownHostException e) {
-			e.printStackTrace();
+			logger.error(e);
 		}
 		return "unknown";
+	}
+
+	@Override
+	public List<FileInfo> listFileInfos(String path) {
+		List<FileInfo> fileInfos = new ArrayList<>();
+		if (path == null) {
+			for (File root : File.listRoots()) {
+				FileInfo fileInfo = new FileInfo(root.getPath(), root.getPath(), null, true, 0);
+				fileInfos.add(fileInfo);
+			}
+		} else {
+			File root = new File(path);
+			if (root.exists() && root.isDirectory()) {
+				for (File f : root.listFiles()) {
+					if (!f.isHidden()) {
+						FileInfo fileInfo = new FileInfo(f.getName(), f.getPath(), f.getParent(), f.isDirectory(),
+								f.isDirectory() ? 0 : f.length());
+						fileInfos.add(fileInfo);
+					}
+				}
+			}
+			Collections.sort(fileInfos, new Comparator<FileInfo>() {
+				@Override
+				public int compare(FileInfo f1, FileInfo f2) {
+					if (f1.isDirectory() && !f2.isDirectory()) {
+						return -1;
+					}
+					if (f2.isDirectory() && !f1.isDirectory()) {
+						return 1;
+					}
+					return f1.getName().compareTo(f2.getName());
+				}
+			});
+		}
+		return fileInfos;
+	}
+
+	@Override
+	public String getParentPath(String path) {
+		if (path != null) {
+			File file = new File(path);
+			if (file != null && file.exists()) {
+				return file.getParent();
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public File getFile(String path, String name) {
+		File file = new File(path + "/" + name);
+		if (file.exists()) {
+			return file;
+		}
+		return null;
+	}
+
+	@Override
+	public String uploadFile(String url, File file) throws IOException {
+		try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+
+			MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+			FileBody fileBody = new FileBody(file);
+			builder.addPart("file", fileBody);
+			HttpEntity entity = builder.build();
+
+			HttpPost post = new HttpPost(url);
+			post.setEntity(entity);
+
+			HttpResponse response = httpClient.execute(post);
+			int statusCode = response.getStatusLine().getStatusCode();
+			if (statusCode == 200) {
+				String content = EntityUtils.toString(response.getEntity());
+				return content;
+			}
+		}
+		return null;
 	}
 
 }

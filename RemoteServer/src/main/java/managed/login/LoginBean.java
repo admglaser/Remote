@@ -34,7 +34,7 @@ public class LoginBean {
 		Account user = accountService.getAccount(username, password);
 		if (user != null) {
 			sessionBean.setUser(user);;
-			FacesUtils.redirect(Constants.PAGE_DEVICES);
+			FacesUtils.redirect(Constants.PAGE_INDEX);
 		} else {
 			FacesUtils.addMessage("Invalid username or password.", FacesMessage.SEVERITY_ERROR, loginButton);
 		}

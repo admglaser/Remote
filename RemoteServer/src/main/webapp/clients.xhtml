@@ -11,106 +11,99 @@
 			<div class="container">
 
 				<h2>Senders</h2>
-				<div class="container">
-					<div class="panel panel-default">
-						<div class="panel-body">
-							<c:choose>
-								<c:when test="#{not clientsBean.senders.isEmpty()}">
-									<f:view>
-										<h:form>
-											<h:dataTable value="#{clientsBean.senders}" var="client"
-												styleClass="table table-responsive" style="table-layout: fixed; word-wrap:break-word;">
-												<h:column>
-													<f:facet name="header">ID</f:facet>
-							    					#{client.id}
-							    				</h:column>
-							    				<h:column>
-													<f:facet name="header">Name</f:facet>
-							    					#{client.deviceName}
-							    				</h:column>
-							    				<h:column>
-													<f:facet name="header">Size</f:facet>
-						    						#{client.deviceWidth} x #{client.deviceHeight}
-							    				</h:column>
-							    				<h:column>
-													<f:facet name="header">Connected</f:facet>
-						    						#{clientsBean.format(client.connectedDate)}
-							    				</h:column>
-											</h:dataTable>
-										</h:form>
-									</f:view>
-								</c:when>
-								<c:otherwise>
-									<h:outputText value="No connected sender clients." />
-								</c:otherwise>
-							</c:choose>
-						</div>
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<c:choose>
+							<c:when test="#{not clientsBean.senders.isEmpty()}">
+								<f:view>
+									<h:form>
+										<h:dataTable value="#{clientsBean.senders}" var="client"
+											styleClass="table table-responsive" style="table-layout: fixed; word-wrap:break-word;">
+											<h:column>
+												<f:facet name="header">ID</f:facet>
+						    					#{client.id}
+						    				</h:column>
+						    				<h:column>
+												<f:facet name="header">Name</f:facet>
+						    					#{client.deviceName}
+						    				</h:column>
+						    				<h:column>
+												<f:facet name="header">Size</f:facet>
+					    						#{client.deviceWidth} x #{client.deviceHeight}
+						    				</h:column>
+						    				<h:column>
+												<f:facet name="header">Connected</f:facet>
+					    						#{clientsBean.format(client.connectedDate)}
+						    				</h:column>
+										</h:dataTable>
+									</h:form>
+								</f:view>
+							</c:when>
+							<c:otherwise>
+								<h:outputText value="No connected sender clients." />
+							</c:otherwise>
+						</c:choose>
 					</div>
 				</div>
 				
 				<h2>Receivers</h2>
-				<div class="container">
-					<div class="panel panel-default">
-						<div class="panel-body">
-							<c:choose>
-								<c:when test="#{not clientsBean.receivers.isEmpty()}">
-									<f:view>
-										<h:form>
-											<h:dataTable value="#{clientsBean.receivers}" var="client"
-												styleClass="table table-responsive" style="table-layout: fixed; word-wrap:break-word;">
-												<h:column>
-													<f:facet name="header">ID</f:facet>
-							    					#{client.id}
-							    				</h:column>
-							    				<h:column>
-													<f:facet name="header">Date</f:facet>
-						    						#{client.connectedDate}
-							    				</h:column>
-											</h:dataTable>
-										</h:form>
-									</f:view>
-								</c:when>
-								<c:otherwise>
-									<h:outputText value="No connected receiver clients." />
-								</c:otherwise>
-							</c:choose>
-						</div>
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<c:choose>
+							<c:when test="#{not clientsBean.receivers.isEmpty()}">
+								<f:view>
+									<h:form>
+										<h:dataTable value="#{clientsBean.receivers}" var="client"
+											styleClass="table table-responsive" style="table-layout: fixed; word-wrap:break-word;">
+											<h:column>
+												<f:facet name="header">ID</f:facet>
+						    					#{client.id}
+						    				</h:column>
+						    				<h:column>
+												<f:facet name="header">Date</f:facet>
+					    						#{client.connectedDate}
+						    				</h:column>
+										</h:dataTable>
+									</h:form>
+								</f:view>
+							</c:when>
+							<c:otherwise>
+								<h:outputText value="No connected receiver clients." />
+							</c:otherwise>
+						</c:choose>
 					</div>
 				</div>
 				
 				<h2>Connections</h2>
-				<div class="container">
-					<div class="panel panel-default">
-						<div class="panel-body">
-							<c:choose>
-								<c:when test="#{not clientsBean.receivers.isEmpty()}">
-									<f:view>
-										<h:form>
-											<table class="table table-responsive" style="table-layout: fixed; word-wrap:break-word;">
-											    <tr>
-											    	<th>Sender</th>
-											    	<th>Receiver</th>
-											    </tr>
-											    <ui:repeat value="#{clientsBean.senders}" var="sender">
-											     	<ui:repeat value="#{clientsBean.getReceivers(sender)}" var="receiver">
-												      	<tr>
-												      		<td>#{sender.id}</td>
-												         	<td>#{receiver.id}</td>
-												        </tr>
-													</ui:repeat>
-											    </ui:repeat>
-											</table>
-										</h:form>
-									</f:view>
-								</c:when>
-								<c:otherwise>
-									<h:outputText value="No connected receiver clients." />
-								</c:otherwise>
-							</c:choose>
-						</div>
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<c:choose>
+							<c:when test="#{not clientsBean.receivers.isEmpty()}">
+								<f:view>
+									<h:form>
+										<table class="table table-responsive" style="table-layout: fixed; word-wrap:break-word;">
+										    <tr>
+										    	<th>Sender</th>
+										    	<th>Receiver</th>
+										    </tr>
+										    <ui:repeat value="#{clientsBean.senders}" var="sender">
+										     	<ui:repeat value="#{clientsBean.getReceivers(sender)}" var="receiver">
+											      	<tr>
+											      		<td>#{sender.id}</td>
+											         	<td>#{receiver.id}</td>
+											        </tr>
+												</ui:repeat>
+										    </ui:repeat>
+										</table>
+									</h:form>
+								</f:view>
+							</c:when>
+							<c:otherwise>
+								<h:outputText value="No connected receiver clients." />
+							</c:otherwise>
+						</c:choose>
 					</div>
 				</div>
-				
 			</div>
 		</ui:define>
 	</ui:composition>

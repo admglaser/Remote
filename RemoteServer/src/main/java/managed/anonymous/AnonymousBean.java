@@ -1,4 +1,4 @@
-package managed.connect;
+package managed.anonymous;
 
 import java.io.IOException;
 
@@ -18,7 +18,7 @@ import util.FacesUtils;
 
 @ManagedBean
 @ViewScoped
-public class ConnectBean {
+public class AnonymousBean {
 
 	@EJB
 	private ClientService clientService;
@@ -35,11 +35,11 @@ public class ConnectBean {
 		String id = this.id.replaceAll(" ", "");
 		String password = this.password;
 
-		if (!id.matches(Constants.NUMERIC_ID_REGEXP)) {
+		if (!id.matches("[0-9]{9}")) {
 			FacesUtils.addMessage("Id must be 9 characters long and contain numbers only.", FacesMessage.SEVERITY_ERROR, connectButton);
 			return;
 		}
-		if (!password.matches(Constants.NUMERIC_PASS_REGEXP)) {
+		if (!password.matches("[0-9]{4}")) {
 			FacesUtils.addMessage("Password must be 4 characters long and contain numbers only.", FacesMessage.SEVERITY_ERROR, connectButton);
 			return;
 		}
@@ -51,8 +51,23 @@ public class ConnectBean {
 			return;
 		}
 
-		sessionBean.setClient(client);
-		FacesUtils.redirect(Constants.PAGE_DEVICE);
+		sessionBean.setAnonymousConnectedClient(client);
+		FacesUtils.reload();
+	}
+	
+	public void view() throws IOException {
+		sessionBean.setClient(sessionBean.getAnonymousConnectedClient());
+		FacesUtils.redirect(Constants.PAGE_VIEWER);
+	}
+	
+	public void browse() throws IOException {
+		sessionBean.setClient(sessionBean.getAnonymousConnectedClient());
+		FacesUtils.redirect(Constants.PAGE_BROWSER);
+	}
+	
+	public void disconnect() throws IOException {
+		sessionBean.setAnonymousConnectedClient(null);
+		FacesUtils.reload();
 	}
 
 	public String getId() {

@@ -19,5 +19,7 @@ public interface ServerConnection {
 	void disconnectAccount();
 	
 	void sendImagePiece(ImagePiece imagePiece);
+	
+	String getAddress();
 
 }

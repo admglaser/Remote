@@ -16,9 +16,11 @@ public class SessionBean {
 
 	private Account user;
 	private Client client;
+	private Client anonymousConnectedClient;
 
 	public void logout() throws IOException {
 		this.user = null;
+		this.client = null;
 		FacesUtils.redirect(Constants.PAGE_INDEX);
 	}
 
@@ -36,6 +38,14 @@ public class SessionBean {
 
 	public void setClient(Client client) {
 		this.client = client;
+	}
+
+	public Client getAnonymousConnectedClient() {
+		return anonymousConnectedClient;
+	}
+
+	public void setAnonymousConnectedClient(Client anonymousConnectedClient) {
+		this.anonymousConnectedClient = anonymousConnectedClient;
 	}
 
 }

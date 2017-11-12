@@ -37,12 +37,17 @@ public class LoginFilter implements Filter {
 		HttpSession session = request.getSession();
 		String page = request.getRequestURL().toString();
 
-		if (page.endsWith(Constants.PAGE_ACCOUNT) && !isLoggedIn(session)) {
-			response.sendRedirect(Constants.PAGE_LOGIN);
+		if (page.endsWith(Constants.PAGE_BROWSER) && !hasClient(session)) {
+			response.sendRedirect(Constants.PAGE_INDEX);
 			return;
 		}
-					
-		if (page.endsWith(Constants.PAGE_DEVICES) && !isLoggedIn(session)) {
+		
+		if (page.endsWith(Constants.PAGE_VIEWER) && !hasClient(session)) {
+			response.sendRedirect(Constants.PAGE_INDEX);
+			return;
+		}
+		
+		if (page.endsWith(Constants.PAGE_ACCOUNT) && !isLoggedIn(session)) {
 			response.sendRedirect(Constants.PAGE_LOGIN);
 			return;
 		}
@@ -77,5 +82,12 @@ public class LoginFilter implements Filter {
 		}
 		return false;
 	}
-
+	
+	private boolean hasClient(HttpSession session) {
+		SessionBean sessionBean = (SessionBean) session.getAttribute("sessionBean");
+		if (sessionBean != null) {
+			return sessionBean.getClient() != null;
+		}
+		return false;
+	}
 }

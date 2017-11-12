@@ -81,7 +81,7 @@ public class GUITest {
 	}
 
 	private void connectToServer() {
-		aut.execute(textInputAddress.replaceText("localhost"), null);
+		aut.execute(textInputAddress.replaceText("localhost:8080"), null);
 		disconnectFromServer();
 		aut.execute(buttonConnectServer.checkText("Disconnect", Operator.equals, 3000), null);
 	}

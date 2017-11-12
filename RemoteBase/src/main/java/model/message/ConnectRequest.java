@@ -1,6 +1,6 @@
 package model.message;
 
-public class Connect {
+public class ConnectRequest {
 	
 	private String id;
 

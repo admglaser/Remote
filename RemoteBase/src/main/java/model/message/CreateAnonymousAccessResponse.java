@@ -1,6 +1,6 @@
 package model.message;
 
-public class VerifyCreateAccountAccess {
+public class CreateAnonymousAccessResponse {
 	
 	private boolean success;
 

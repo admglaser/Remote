@@ -9,6 +9,7 @@ import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 
+import org.apache.log4j.Logger;
 import org.glassfish.tyrus.client.ClientManager;
 
 import application.Application;
@@ -17,7 +18,8 @@ import model.ImagePiece;
 import ui.access.AccessPresenter;
 import ui.connection.ConnectionPresenter;
 
-public class WebsocketClientEndpoint extends Endpoint implements javax.websocket.MessageHandler.Whole<String>, ServerConnection {
+public class WebsocketClientEndpoint extends Endpoint
+		implements javax.websocket.MessageHandler.Whole<String>, ServerConnection {
 
 	private Application application;
 
@@ -29,6 +31,9 @@ public class WebsocketClientEndpoint extends Endpoint implements javax.websocket
 
 	private Session session;
 	private MessageHandler messageHandler;
+	private String address;
+
+	private Logger logger = Logger.getLogger(WebsocketClientEndpoint.class);
 
 	public void setApplication(Application application) {
 		this.application = application;
@@ -47,12 +52,13 @@ public class WebsocketClientEndpoint extends Endpoint implements javax.websocket
 	}
 
 	public void connect(final String address) {
+		this.address = address;
 		final WebsocketClientEndpoint pointer = this;
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					URI endpointURI = new URI("ws://" + address + ":8080/remote/websocket");
+					URI endpointURI = new URI("ws://" + address + "/remote/websocket");
 					ClientManager clientManager = ClientManager.createClient();
 					clientManager.connectToServer(pointer, ClientEndpointConfig.Builder.create().build(), endpointURI);
 				} catch (Exception e) {
@@ -66,24 +72,24 @@ public class WebsocketClientEndpoint extends Endpoint implements javax.websocket
 	@Override
 	public void onOpen(Session session, EndpointConfig config) {
 		session.addMessageHandler(this);
-
 		this.session = session;
-		System.out.println("onOpen: " + session.getId());
+		logger.info("onOpen: " + session.getId());
+		
 		connectionPresenter.connected();
 		application.showMessage("Connected to server!");
-
 		messageHandler = new MessageHandler(new WebsocketSession(session));
 		messageHandler.application = application;
+		messageHandler.serverConnection = this;
 		messageHandler.capturer = capturer;
 		messageHandler.accessPresenter = accessPresenter;
 		messageHandler.connectionPresenter = connectionPresenter;
-
 		messageHandler.sendIndentify();
 	}
 
 	@Override
 	public void onClose(Session userSession, CloseReason reason) {
-		System.out.println("onClose: " + reason);
+		logger.info("onClose: " + reason);
+
 		application.showMessage("Disconnected from server!");
 		capturer.stopCapture();
 		connectionPresenter.disconnected();
@@ -93,14 +99,14 @@ public class WebsocketClientEndpoint extends Endpoint implements javax.websocket
 
 	@Override
 	public void onMessage(String message) {
-		System.out.println("onMessage: " + message);
-		
+		logger.info("onMessage: " + message);
+
 		try {
 			messageHandler.handleMessage(message);
 		} catch (IOException e) {
-			System.out.println("Failed to process message: " + e.getMessage());
+			logger.error("Failed to process message: " + e.getMessage());
 		} catch (NoCommandException e) {
-			System.out.println("Failed to get command from message.");
+			logger.info("Failed to get command from message.");
 		}
 	}
 
@@ -108,7 +114,7 @@ public class WebsocketClientEndpoint extends Endpoint implements javax.websocket
 		try {
 			session.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("Failed to close session: " + e.getMessage());
 		}
 	}
 
@@ -118,7 +124,7 @@ public class WebsocketClientEndpoint extends Endpoint implements javax.websocket
 
 	public void connectAnonymous(String id, String password) {
 		if (messageHandler != null) {
-			messageHandler.sendCreateAnonymousAccess(id, password);
+			messageHandler.sendCreateAnonymousAccessRequest(id, password);
 		}
 	}
 
@@ -130,7 +136,7 @@ public class WebsocketClientEndpoint extends Endpoint implements javax.websocket
 
 	public void connectAccount(String username, String password) {
 		if (messageHandler != null) {
-			messageHandler.sendCreateAccountAccess(username, password);
+			messageHandler.sendCreateAccountAccessRequest(username, password);
 		}
 	}
 
@@ -144,6 +150,10 @@ public class WebsocketClientEndpoint extends Endpoint implements javax.websocket
 		if (messageHandler != null) {
 			messageHandler.sendImagePiece(imagePiece);
 		}
+	}
+
+	public String getAddress() {
+		return address;
 	}
 
 }

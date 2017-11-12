@@ -8,6 +8,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.apache.log4j.Logger;
+
 import model.Rectangle;
 
 public class ImageComparator {
@@ -18,6 +20,8 @@ public class ImageComparator {
 	protected int verticalDivison;
 	protected int width;
 	protected int height;
+	
+	private Logger logger = Logger.getLogger(ImageComparator.class);
 	
 	public ImageComparator(BufferedImage firstImage, BufferedImage secondImage, int horizontalDivision, int verticalDivison) {
 		this.firstImage = firstImage;
@@ -61,7 +65,7 @@ public class ImageComparator {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e);
 		}
 		executorService.shutdown();
 		return list;
@@ -75,7 +79,7 @@ public class ImageComparator {
 						return true;
 					}
 				} catch (Exception e) {
-					e.printStackTrace();
+					logger.error(e);
 				}
 			}
 		}

@@ -1,7 +1,7 @@
 package selenium;
 
+import static org.junit.Assert.*;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.By;
@@ -25,27 +25,26 @@ public class UITest {
 	@Test
 	public void openIndexPage() {
 		driver.get("http://localhost:8080/remote/");
-		WebElement h1 = driver.findElement(By.xpath("//*[@id=\"wrap\"]/div/h1"));
-		Assert.assertEquals("Welcome to Remote!", h1.getText());
-	}
-	
-	@Test
-	public void openDevicesPageWhenNotLoggedIn() {
-		driver.get("http://localhost:8080/remote/devices");
-		Assert.assertEquals("http://localhost:8080/remote/login", driver.getCurrentUrl());
+		WebElement h1 = driver.findElement(By.xpath("//*[@id=\"wrap\"]/div/h2"));
+		WebElement id = driver.findElement(By.xpath("//*[@id=\"j_idt15\"]/div[1]/label"));
+		WebElement password = driver.findElement(By.xpath("//*[@id=\"j_idt15\"]/div[2]/label"));
+		
+		assertEquals("Connect to device", h1.getText());	
+		assertEquals("ID:", id.getText());
+		assertEquals("Password:", password.getText());
 	}
 	
 	@Test
 	public void loginAndLogOutWithAdmin() {
 		loginWithCredentials("admin", "admin");
-		driver.findElement(By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul[2]/li[1]/a"));
-		logout();
+		driver.findElement(By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul/li/ul/li[2]/a"));
+		logout(true);
 	}
 
 	@Test
 	public void loginAndLogOutWithUser() {
 		loginWithCredentials("user", "user");
-		logout();
+		logout(false);
 	}
 	
 	@Test
@@ -53,44 +52,54 @@ public class UITest {
 		String random = "user" + System.currentTimeMillis();
 		registerWithCredentials(random, random);
 		loginWithCredentials(random, random);
-		logout();
+		logout(false);
 	}
 
 	private void registerWithCredentials(String username, String password) {
 		driver.get("http://localhost:8080/remote/register");
-		WebElement usernameTextField = driver.findElement(By.xpath("//*[@id=\"j_idt15\"]/div[1]/input"));
+		WebElement usernameTextField = driver.findElement(By.xpath("//*[@id=\"j_idt14\"]/div[1]/input"));
 		usernameTextField.sendKeys(username);
-		WebElement passwordTextField = driver.findElement(By.xpath("//*[@id=\"j_idt15\"]/div[2]/input"));
+		WebElement passwordTextField = driver.findElement(By.xpath("//*[@id=\"j_idt14\"]/div[2]/input"));
 		passwordTextField.sendKeys(password);
-		WebElement passwordConfirmTextField = driver.findElement(By.xpath("//*[@id=\"j_idt15\"]/div[3]/input"));
+		WebElement passwordConfirmTextField = driver.findElement(By.xpath("//*[@id=\"j_idt14\"]/div[3]/input"));
 		passwordConfirmTextField.sendKeys(password);
-		WebElement sendButton = driver.findElement(By.xpath("//*[@id=\"j_idt15:registerButton\"]"));
+		WebElement sendButton = driver.findElement(By.xpath("//*[@id=\"j_idt14:registerButton\"]"));
 		sendButton.click();
-		WebElement successMessage = driver.findElement(By.xpath("//*[@id=\"j_idt15\"]/div[4]/span"));
-		Assert.assertEquals("Successfully registered.", successMessage.getText());
+		WebElement successMessage = driver.findElement(By.xpath("//*[@id=\"j_idt14\"]/div[4]/span"));
+		assertEquals("Successfully registered.", successMessage.getText());
 	}
 
 	private void loginWithCredentials(String username, String password) {
 		driver.get("http://localhost:8080/remote/");
-		WebElement loginButtonInHeader = driver.findElement(By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul[2]/li[1]/a"));
+		WebElement loginButtonInHeader = driver.findElement(By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul/li[1]/a"));
 		loginButtonInHeader.click();
-		Assert.assertEquals("http://localhost:8080/remote/login", driver.getCurrentUrl());
+		assertEquals("http://localhost:8080/remote/login", driver.getCurrentUrl());
 		
-		WebElement userNameTextField = driver.findElement(By.xpath("//*[@id=\"j_idt15\"]/div[1]/input"));
+		WebElement userNameTextField = driver.findElement(By.xpath("//*[@id=\"j_idt14\"]/div[1]/input"));
 		userNameTextField.sendKeys(username);
-		WebElement passwordTextField = driver.findElement(By.xpath("//*[@id=\"j_idt15\"]/div[2]/input"));
+		WebElement passwordTextField = driver.findElement(By.xpath("//*[@id=\"j_idt14\"]/div[2]/input"));
 		passwordTextField.sendKeys(password);
-		WebElement sendButton = driver.findElement(By.xpath("//*[@id=\"j_idt15:loginButton\"]"));
+		WebElement sendButton = driver.findElement(By.xpath("//*[@id=\"j_idt14:loginButton\"]"));
 		sendButton.click();
-		Assert.assertEquals("http://localhost:8080/remote/devices", driver.getCurrentUrl());
+		assertEquals("http://localhost:8080/remote/index", driver.getCurrentUrl());
+		WebElement userLoggedInButtonInHeader = driver.findElement(By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul/li/a"));
+		assertEquals("Logged in as " + username, userLoggedInButtonInHeader.getText());
 	}
 	
-	private void logout() {
-		WebElement userLoggedInButtonInHeader = driver.findElement(By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul[2]/li[last()]/a"));
+	private void logout(boolean isAdmin) {
+		WebElement userLoggedInButtonInHeader = driver.findElement(By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul/li/a"));
 		userLoggedInButtonInHeader.click();
-		WebElement logoutButtonInMenu = driver.findElement(By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul[2]/li[last()]/ul/li[3]/a"));
+		WebElement logoutButtonInMenu = null;
+		if (isAdmin) {
+			logoutButtonInMenu = driver.findElement(By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul/li/ul/li[4]/a"));
+
+		} else {
+			logoutButtonInMenu = driver.findElement(By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul/li/ul/li[3]/a"));
+		}
 		logoutButtonInMenu.click();
-		Assert.assertEquals("http://localhost:8080/remote/index", driver.getCurrentUrl());
+		assertEquals("http://localhost:8080/remote/index", driver.getCurrentUrl());
+		WebElement loginButtonInHeader = driver.findElement(By.xpath("//*[@id=\"bs-example-navbar-collapse-1\"]/ul/li[1]/a"));
+		assertEquals("Login", loginButtonInHeader.getText());
 	}
 
 	@AfterClass

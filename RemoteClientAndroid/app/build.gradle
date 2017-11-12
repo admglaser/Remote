@@ -43,6 +43,7 @@ android {
     lintOptions {
         abortOnError false
     }
+
 }
 
 dependencies {
@@ -77,5 +78,8 @@ dependencies {
 
     //remote client base
     compile 'hu.bme.aut.dipterv:remote-client-base:1.0.0'
+
+    //http client
+    compile 'com.squareup.okhttp3:okhttp:3.9.0'
 
 }

@@ -1,6 +1,6 @@
 package model.message;
 
-public class CreateAnonymousAccess {
+public class CreateAnonymousAccessRequest {
 
 	private String numericId;
 	

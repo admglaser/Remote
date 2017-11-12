@@ -14,8 +14,11 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import org.apache.log4j.Logger;
+
 import model.Client;
 import service.AccountService;
+import service.BrowserService;
 import service.ClientService;
 
 @ServerEndpoint("/websocket")
@@ -27,33 +30,36 @@ public class WebsocketServer {
 	@EJB
 	private AccountService accountService;
 
+	@EJB
+	private BrowserService browserService;
+
+	private Logger logger = Logger.getLogger(WebsocketServer.class);
+	
 	@OnOpen
 	public void onOpen(Session session) {
-		System.out.println("open " + session.getId());
+		logger.info("open " + session.getId());
 	}
 
 	@OnClose
 	public void onClose(Session session) {
-		System.out.println("close");
-		ClientService clientService = getClientService();
-		AccountService accountService = getLoginService();
-		Client client = clientService.findClientBySession(session);
-		new MessageHandler(clientService, accountService).onClose(client);
+		logger.info("close " + session.getId());
+		Client client = getClientService().findClientBySession(session);
+		new MessageHandler(getClientService(), getLoginService(), getBrowserService()).onClose(client);
 	}
 
 	@OnError
 	public void onError(Throwable error) {
-		System.out.println("onError: " + error);
+		logger.error("onError: " + error);
 	}
 
 	@OnMessage
 	public void onMessage(String message, Session session) {
 		try {
-			new MessageHandler(getClientService(), getLoginService()).handleMessage(message, session);
+			new MessageHandler(getClientService(), getLoginService(), getBrowserService()).handleMessage(message, session);
 		} catch (IOException e) {
-			System.out.println("Failed to process message: " + e.getMessage());
+			logger.error("Failed to process message: " + e.getMessage());
 		} catch (NoCommandException e) {
-			System.out.println("Failed to get command from message.");
+			logger.error("Failed to get command from message.");
 		}
 	}
 
@@ -77,6 +83,17 @@ public class WebsocketServer {
 			accountService = (AccountService) bm.getReference(bean, AccountService.class, ctx);
 		}
 		return accountService;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public BrowserService getBrowserService() {
+		if (browserService == null) {
+			BeanManager bm = CDI.current().getBeanManager();
+			Bean<BrowserService> bean = (Bean<BrowserService>) bm.getBeans(BrowserService.class).iterator().next();
+			CreationalContext<BrowserService> ctx = bm.createCreationalContext(bean);
+			browserService = (BrowserService) bm.getReference(bean, BrowserService.class, ctx);
+		}
+		return browserService;
 	}
 
 }

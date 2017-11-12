@@ -10,6 +10,8 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
 
+import org.apache.log4j.Logger;
+
 import application.Application;
 import main.Main;
 import model.ImagePiece;
@@ -20,7 +22,9 @@ public class AdaptiveCapturer implements Capturer, Runnable {
 
 	private static final int VERTICAL_DIVISON = 8;
 	private static final int HORIZONTAL_DIVISION = 16;
-
+	
+	private Logger logger = Logger.getLogger(AdaptiveCapturer.class);
+	
 	@Inject
 	Application frame;
 
@@ -58,7 +62,6 @@ public class AdaptiveCapturer implements Capturer, Runnable {
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
 			}
 
 			frames++;
@@ -78,7 +81,7 @@ public class AdaptiveCapturer implements Capturer, Runnable {
 			}
 			previousImage = image;
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e);
 		}
 	}
 

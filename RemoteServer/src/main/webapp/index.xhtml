@@ -10,9 +10,104 @@
 		<ui:define name="content">
 			<div class="container">
 				
-				<h1>Welcome to Remote!</h1>		
+				<c:choose>
+					<c:when test="#{not empty sessionBean.anonymousConnectedClient}">
+						<h2>Connected device</h2>
+						<div class="panel panel-default">
+							<div class="panel-body">
+								<h4>Device: #{sessionBean.anonymousConnectedClient.deviceName}</h4>
+								<h4>ID: #{sessionBean.anonymousConnectedClient.id}</h4>
+								<h4>Size: #{sessionBean.anonymousConnectedClient.deviceWidth} x #{sessionBean.anonymousConnectedClient.deviceHeight}</h4>
+								<h:form>
+									<div class="btn-toolbar">
+										<h:commandButton action="#{anonymousBean.view()}" value="View" styleClass="btn btn-primary" />
+										<h:commandButton action="#{anonymousBean.browse()}" value="Browse" styleClass="btn btn-primary" />
+										<h:commandButton action="#{anonymousBean.disconnect()}" value="Disconnect" styleClass="btn btn-primary" />
+									</div>
+								</h:form>
+							</div>
+						</div>
+					</c:when>
+					<c:otherwise>
+						<h2>Connect to device</h2>
+						<div class="panel panel-default">
+							<div class="panel-body">
+								<div class="col-xs-12">
+									<f:view>
+										<h:form>
+											<div class="form-group row">
+												<label class="col-form-label">ID:</label>
+												<h:inputText styleClass="form-control"
+													value="#{anonymousBean.id}" />
+											</div>
+		
+											<div class="form-group row">
+												<label class="col-form-label">Password:</label>
+												<h:inputSecret styleClass="form-control"
+													value="#{anonymousBean.password}" />
+											</div>
+		
+											<div class="form-group row">
+												<h:commandButton styleClass="btn btn-primary"
+													id="connectButton" binding="#{anonymousBean.connectButton}"
+													value="Send" action="#{anonymousBean.connect()}" />
+												<h:message for="connectButton"
+													infoClass="help-block alert alert-success fade in"
+													errorClass="help-block alert alert-danger fade in" />
+											</div>
+										</h:form>
+									</f:view>
+								</div>
+							</div>
+						</div>
 				
-				<p>This is the index page.</p>		
+					</c:otherwise>>
+				</c:choose>
+				
+				
+				<c:if test="#{not empty sessionBean.user}">
+				
+					<h2>Logged in devices</h2>
+	
+					<div class="panel panel-default">
+						<div class="panel-body">
+							<c:choose>
+								<c:when test="#{not devicesBean.clients.isEmpty()}">
+									<f:view>
+										<h:form>
+											<h:dataTable value="#{devicesBean.clients}" var="client"
+												styleClass="table table-responsive"
+												style="table-layout: fixed; word-wrap:break-word;">
+												<h:column>
+													<f:facet name="header">Name</f:facet>
+							    					#{client.deviceName}
+							    				</h:column>
+							    				<h:column>
+													<f:facet name="header">ID</f:facet>
+						    						#{client.id}
+							    				</h:column>
+												<h:column>
+													<f:facet name="header">Size</f:facet>
+							    					#{client.deviceWidth} x #{client.deviceHeight}
+							    				</h:column>
+												<h:column>
+													<f:facet name="header"></f:facet>
+													<div class="btn-toolbar">
+														<h:commandButton action="#{devicesBean.connect(client)}" value="View" styleClass="btn btn-primary" />
+														<h:commandButton action="#{devicesBean.browse(client)}"	value="Browse" styleClass="btn btn-primary" />
+													</div>
+												</h:column>
+											</h:dataTable>
+										</h:form>
+									</f:view>
+								</c:when>
+								<c:otherwise>
+									<h:outputText value="No devices." />
+								</c:otherwise>
+							</c:choose>
+						</div>
+					</div>
+				</c:if>
 
 			</div>
 		</ui:define>

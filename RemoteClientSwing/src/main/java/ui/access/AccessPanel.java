@@ -24,6 +24,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.text.MaskFormatter;
 
+import org.apache.log4j.Logger;
+
 import main.Main;
 import model.ConnectionStatus;
 import model.LoginStatus;
@@ -52,6 +54,8 @@ public class AccessPanel extends JPanel implements AccessScreen {
 	private JButton btnGeneratePassword;
 	private JLabel lblAccountConnectionStatus;
 	private JLabel lblAnonymousConnectionStatus;
+
+	private Logger logger = Logger.getLogger(AccessPanel.class);
 
 	public AccessPanel() {
 		Main.injector.inject(this);
@@ -267,7 +271,7 @@ public class AccessPanel extends JPanel implements AccessScreen {
 		try {
 			idFormat = new MaskFormatter("### ### ###");
 		} catch (ParseException e) {
-			e.printStackTrace();
+			logger.error(e);
 		}
 	}
 

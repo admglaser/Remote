@@ -1,6 +1,6 @@
 package model.message;
 
-public class CreateAccountAccess {
+public class CreateAccountAccessRequest {
 
 	private String username;
 	private String password;

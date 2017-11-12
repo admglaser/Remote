@@ -1,8 +1,15 @@
 package model;
 
-import model.message.Connect;
-import model.message.CreateAccountAccess;
-import model.message.CreateAnonymousAccess;
+import model.message.ConnectRequest;
+import model.message.ConnectResponse;
+import model.message.CreateAccountAccessRequest;
+import model.message.CreateAccountAccessResponse;
+import model.message.CreateAnonymousAccessRequest;
+import model.message.CreateAnonymousAccessResponse;
+import model.message.FileDownloadRequest;
+import model.message.FileDownloadResponse;
+import model.message.FileListRequest;
+import model.message.FileListResponse;
 import model.message.Identify;
 import model.message.Image;
 import model.message.KeyEvent;
@@ -12,64 +19,125 @@ import model.message.RemoveAccountAccess;
 import model.message.RemoveAnonymousAccess;
 import model.message.Start;
 import model.message.Stop;
-import model.message.VerifyConnect;
-import model.message.VerifyCreateAccountAccess;
-import model.message.VerifyCreateAnonymousAccess;
 
 public class MessageWrapper {
 
-	private Connect connect;
+	private ConnectRequest connectRequest;
 
-	private CreateAccountAccess createAccountAccess;
+	private ConnectResponse connectResponse;
+
+	private CreateAccountAccessRequest createAccountAccessRequest;
+
+	private CreateAccountAccessResponse createAccountAccessResponse;
+
+	private CreateAnonymousAccessRequest createAnonymousAccessRequest;
+
+	private CreateAnonymousAccessResponse createAnonymousAccessResponse;
+
+	private FileDownloadRequest fileDownloadRequest;
+
+	private FileDownloadResponse fileDownloadResponse;
+
+	private FileListRequest fileListRequest;
 	
-	private CreateAnonymousAccess createAnonymousAccess;
-	
+	private FileListResponse fileListResponse;
+
 	private Identify identify;
 
 	private Image image;
-	
+
 	private KeyEvent keyEvent;
-	
+
 	private MouseClick mouseClick;
-	
+
 	private Notify notify;
-	
+
 	private RemoveAccountAccess removeAccountAccess;
-	
+
 	private RemoveAnonymousAccess removeAnonymousAccess;
-	
+
 	private Start start;
-	
+
 	private Stop stop;
-	
-	private VerifyConnect verifyConnect;
-	
-	private VerifyCreateAccountAccess verifyCreateAccountAccess;
-	
-	private VerifyCreateAnonymousAccess verifyCreateAnonymousAccess;
 
-	public Connect getConnect() {
-		return connect;
+	public ConnectRequest getConnectRequest() {
+		return connectRequest;
 	}
 
-	public void setConnect(Connect connect) {
-		this.connect = connect;
+	public void setConnectRequest(ConnectRequest connectRequest) {
+		this.connectRequest = connectRequest;
 	}
 
-	public CreateAccountAccess getCreateAccountAccess() {
-		return createAccountAccess;
+	public ConnectResponse getConnectResponse() {
+		return connectResponse;
 	}
 
-	public void setCreateAccountAccess(CreateAccountAccess createAccountAccess) {
-		this.createAccountAccess = createAccountAccess;
+	public void setConnectResponse(ConnectResponse connectResponse) {
+		this.connectResponse = connectResponse;
 	}
 
-	public CreateAnonymousAccess getCreateAnonymousAccess() {
-		return createAnonymousAccess;
+	public CreateAccountAccessRequest getCreateAccountAccessRequest() {
+		return createAccountAccessRequest;
 	}
 
-	public void setCreateAnonymousAccess(CreateAnonymousAccess createAnonymousAccess) {
-		this.createAnonymousAccess = createAnonymousAccess;
+	public void setCreateAccountAccessRequest(CreateAccountAccessRequest createAccountAccessRequest) {
+		this.createAccountAccessRequest = createAccountAccessRequest;
+	}
+
+	public CreateAccountAccessResponse getCreateAccountAccessResponse() {
+		return createAccountAccessResponse;
+	}
+
+	public void setCreateAccountAccessResponse(CreateAccountAccessResponse createAccountAccessResponse) {
+		this.createAccountAccessResponse = createAccountAccessResponse;
+	}
+
+	public CreateAnonymousAccessRequest getCreateAnonymousAccessRequest() {
+		return createAnonymousAccessRequest;
+	}
+
+	public void setCreateAnonymousAccessRequest(CreateAnonymousAccessRequest createAnonymousAccessRequest) {
+		this.createAnonymousAccessRequest = createAnonymousAccessRequest;
+	}
+
+	public CreateAnonymousAccessResponse getCreateAnonymousAccessResponse() {
+		return createAnonymousAccessResponse;
+	}
+
+	public void setCreateAnonymousAccessResponse(CreateAnonymousAccessResponse createAnonymousAccessResponse) {
+		this.createAnonymousAccessResponse = createAnonymousAccessResponse;
+	}
+
+	public FileDownloadRequest getFileDownloadRequest() {
+		return fileDownloadRequest;
+	}
+
+	public void setFileDownloadRequest(FileDownloadRequest fileDownloadRequest) {
+		this.fileDownloadRequest = fileDownloadRequest;
+	}
+
+	public FileDownloadResponse getFileDownloadResponse() {
+		return fileDownloadResponse;
+	}
+
+	public void setFileDownloadResponse(FileDownloadResponse fileDownloadResponse) {
+		this.fileDownloadResponse = fileDownloadResponse;
+	}
+
+	public FileListRequest getFileListRequest() {
+		return fileListRequest;
+	}
+
+	public void setFileListRequest(FileListRequest fileListRequest) {
+		this.fileListRequest = fileListRequest;
+	}
+
+	public FileListResponse getFileListResponse() {
+		return fileListResponse;
+	}
+
+	public void setFileListResponse(FileListResponse fileListResponse) {
+		this.fileListResponse = fileListResponse;
 	}
 
 	public Identify getIdentify() {
@@ -103,7 +171,7 @@ public class MessageWrapper {
 	public void setMouseClick(MouseClick mouseClick) {
 		this.mouseClick = mouseClick;
 	}
-	
+
 	public Notify getNotify() {
 		return notify;
 	}
@@ -111,7 +179,6 @@ public class MessageWrapper {
 	public void setNotify(Notify notify) {
 		this.notify = notify;
 	}
-
 
 	public RemoveAccountAccess getRemoveAccountAccess() {
 		return removeAccountAccess;
@@ -143,30 +210,6 @@ public class MessageWrapper {
 
 	public void setStop(Stop stop) {
 		this.stop = stop;
-	}
-
-	public VerifyConnect getVerifyConnect() {
-		return verifyConnect;
-	}
-
-	public void setVerifyConnect(VerifyConnect verifyConnect) {
-		this.verifyConnect = verifyConnect;
-	}
-
-	public VerifyCreateAccountAccess getVerifyCreateAccountAccess() {
-		return verifyCreateAccountAccess;
-	}
-
-	public void setVerifyCreateAccountAccess(VerifyCreateAccountAccess verifyCreateAccountAccess) {
-		this.verifyCreateAccountAccess = verifyCreateAccountAccess;
-	}
-
-	public VerifyCreateAnonymousAccess getVerifyCreateAnonymousAccess() {
-		return verifyCreateAnonymousAccess;
-	}
-
-	public void setVerifyCreateAnonymousAccess(VerifyCreateAnonymousAccess verifyCreateAnonymousAccess) {
-		this.verifyCreateAnonymousAccess = verifyCreateAnonymousAccess;
 	}
 
 }

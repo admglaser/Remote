@@ -1,6 +1,6 @@
 package model.message;
 
-public class VerifyConnect {
+public class ConnectResponse {
 	
 	private boolean success;
 
