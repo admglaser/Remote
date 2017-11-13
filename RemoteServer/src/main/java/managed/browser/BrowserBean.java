@@ -12,8 +12,6 @@ import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
-import javax.faces.component.UIComponent;
-import javax.faces.context.FacesContext;
 
 import org.apache.log4j.Logger;
 
@@ -44,7 +42,6 @@ public class BrowserBean {
 	private String path;
 	private String parentPath;
 	private List<FileInfo> files;
-	private UIComponent table;
 	
 	private String id;
 	private boolean responseArrived;
@@ -179,12 +176,5 @@ public class BrowserBean {
 		this.files = fileInfos;
 	}
 
-	public UIComponent getTable() {
-		return table;
-	}
-
-	public void setTable(UIComponent table) {
-		this.table = table;
-	}
 
 }
