@@ -82,4 +82,10 @@ dependencies {
     //http client
     compile 'com.squareup.okhttp3:okhttp:3.9.0'
 
+    //log4j
+    compile 'de.mindpipe.android:android-logging-log4j:1.0.3'
+
+    //missing dep for tyrus
+    compile 'org.osgi:org.osgi.core:4.3.0'
+
 }

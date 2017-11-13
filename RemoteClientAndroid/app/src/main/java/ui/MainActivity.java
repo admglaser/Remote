@@ -9,6 +9,9 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 
+import java.io.File;
+
+import de.mindpipe.android.logging.log4j.LogConfigurator;
 import remote.aut.bme.hu.remote.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -23,6 +26,21 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         setViewPager();
         requestFilePermission();
+        configureLogging();
+    }
+
+    private void configureLogging() {
+        String logFilePath = new File(getBaseContext().getExternalFilesDir(null), "log.txt").getAbsolutePath();
+        String filePattern = "%d - [%c] - %p : %m%n";
+        int maxBackupSize = 10;
+        long maxFileSize = 1024 * 1024;
+
+        LogConfigurator logConfigurator = new LogConfigurator();
+        logConfigurator.setFileName(logFilePath);
+        logConfigurator.setFilePattern(filePattern);
+        logConfigurator.setMaxBackupSize(maxBackupSize);
+        logConfigurator.setMaxFileSize(maxFileSize);
+        logConfigurator.configure();
     }
 
     private void requestFilePermission() {
