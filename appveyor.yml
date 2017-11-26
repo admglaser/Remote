@@ -2,7 +2,7 @@ version: '{build}'
 os: Windows Server 2012
 install:
   - cmd: SET ANDROID_HOME=C:\Program Files (x86)\Android\android-sdk
-  - mkdir -p "$ANDROID_SDK/licenses"
+  - mkdir -p "$ANDROID_HOME/licenses"
   - echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_SDK/licenses/android-sdk-license"
   - echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_SDK/licenses/android-sdk-preview-license"
 build_script:
