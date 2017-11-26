@@ -17,6 +17,4 @@ install:
   # responses, we invoke cmd so we can redirect stderr to stdout, and tell it to --update itself.
   - ps: for($i=0;$i -lt 30;$i++) { $response += "y`n"}; $response | cmd /c 'C:\android\tools\bin\sdkmanager.bat 2>&1' --update
 build_script:
-  - mvn clean package --batch-mode -DskipTest
-test_script:
-  - mvn clean install --batch-mode
+  - mvn clean install --batch-mode -DskipTest
