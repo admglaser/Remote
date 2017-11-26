@@ -22,9 +22,9 @@ public class FacesUtils {
 		}
 	}
 
-	public static void redirect(String string) throws IOException {
+	public static void redirect(String page) throws IOException {
 		HttpServletResponse response = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
-		response.sendRedirect(string);
+		response.sendRedirect(page);
 	}
 	
 	public static void reload() throws IOException {
