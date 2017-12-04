@@ -13,7 +13,7 @@ import network.ServerConnection;
 public class FullCapturer implements Capturer, Runnable {
 
     @Inject
-    Application frame;
+    Application application;
 
     @Inject
     ServerConnection serverConnection;
@@ -26,14 +26,14 @@ public class FullCapturer implements Capturer, Runnable {
 
     @Override
     public void startCapture() {
-        frame.showMessage("Capturing started.");
+        application.showMessage("Capturing started.");
         new Thread(this).start();
     }
 
     @Override
     public void stopCapture() {
         if (isCapturing) {
-            frame.showMessage("Capturing stopped.");
+            application.showMessage("Capturing stopped.");
             isCapturing = false;
         }
     }
@@ -55,11 +55,11 @@ public class FullCapturer implements Capturer, Runnable {
         try {
             byte[] byteArray = new ImageCapturer().getCapturedImageBytes();
             String encodedString = Base64.encodeToString(byteArray, Base64.DEFAULT);
-            Rectangle rect = new Rectangle(0, 0, 1080, 1920);
+            Rectangle rect = new Rectangle(0, 0, application.getDeviceWidth(), application.getDeviceHeight());
             ImagePiece imagePiece = new ImagePiece(rect, encodedString);
             serverConnection.sendImagePiece(imagePiece);
         } catch (Exception e) {
-            frame.showMessage("Error sending image.");
+            application.showMessage("Error sending image.");
         }
     }
 
