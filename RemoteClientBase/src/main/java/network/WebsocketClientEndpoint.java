@@ -96,6 +96,11 @@ public class WebsocketClientEndpoint extends Endpoint
 		accessPresenter.accountDisconnected();
 		accessPresenter.anonymousDisconnected();
 	}
+	
+	@Override
+	public void onError(Session session, Throwable throwable) {
+		logger.error("onError: " + throwable);
+	}
 
 	@Override
 	public void onMessage(String message) {

@@ -229,14 +229,14 @@ public class MessageHandler {
 		browserBean.responseArrived();
 	}
 
-	public void sendNotify(Client client) {
+	private void sendNotify(Client client) {
 		Notify notify = new Notify();
 		MessageWrapper wrapper = new MessageWrapper();
 		wrapper.setNotify(notify);
 		send(client, wrapper);
 	}
 
-	public void sendStop(Client client) {
+	private void sendStop(Client client) {
 		Stop stop = new Stop();
 		MessageWrapper wrapper = new MessageWrapper();
 		wrapper.setStop(stop);
